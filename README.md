@@ -12,7 +12,9 @@ Clone the repository using:
 If you forgot to use the command above, you will need to do the following steps:
 1. Go to the Assets/Submodules/irlab-unity-tools folder and type:
 ``` git submodule init```
+
 ``` git submodule update```
+
 ``` git checkout main ```
 
 2. Open the unity project. Errors should be gone.
