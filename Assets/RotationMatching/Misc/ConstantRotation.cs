@@ -6,6 +6,7 @@ public class ConstantRotation : MonoBehaviour
 {
     private float degreesPerSecond = 10f;
     [SerializeField] private bool allowRotation = false;
+
     // Start is called before the first frame update
     void Start()
     {
