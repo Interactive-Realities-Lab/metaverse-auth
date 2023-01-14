@@ -16,18 +16,18 @@ public class ControlUIFeedback : MonoBehaviour
     public void Sampling()
     {
         background.color = colorSampling;
-        text.text= "Sampling ...";
+        text.text= "Stabilishing Parity ...";
     }
 
     public void NotMaching()
     {
         background.color = colorNotMatching;
-        text.text = "Lost Rotation Matching";
+        text.text = "Parity Lost. \n Press Space to start over.";
     }
 
     public void Mached()
     {
         background.color = colorMatching;
-        text.text = "Rotations Matching";
+        text.text = "Parity Stablished";
     }
 }
