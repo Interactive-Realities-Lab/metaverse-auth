@@ -29,13 +29,13 @@ public class MatchingAngles : MonoBehaviour
 
 
     //Sampling rate for the previous rotation diff
-    private int rotSamplingInterval = 150;
+    private int rotSamplingInterval = 100;
     private int currentRotSampling = 0;
 
     private bool matched = false;
     public bool connectionLost { get; set; } = false;
 
-    void Update()
+    void FixedUpdate()
     {
         if(connectionLost) return;
 
@@ -79,8 +79,9 @@ public class MatchingAngles : MonoBehaviour
                 matched= false;
                 connectionLost= true;
                 currentRotSampling = 0;
-                if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("NotMatched"))
-                    stateMachine.SetTrigger("GotoNotMatched");
+                prevDistance = 0;
+
+                stateMachine.SetTrigger("GotoNotMatched");
             }
 
             // avoid sampling every frame... 
