@@ -1,5 +1,5 @@
 {
-    "name": "ViveTrackerInput",
+    "name": "MetaverseAuthInputs",
     "maps": [
         {
             "name": "ViveTracker",
@@ -44,6 +44,34 @@
                     "processors": "",
                     "groups": "",
                     "action": "Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "MorseCodeInput",
+            "id": "162a50c5-cb65-4260-9ba9-960647c04742",
+            "actions": [
+                {
+                    "name": "SendCode",
+                    "type": "Button",
+                    "id": "8eb664d7-d31c-4879-9e80-c70385fcfc31",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f4b60b35-7951-40a6-9ee7-8073d42873d2",
+                    "path": "<XRController>{LeftHand}/triggerPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SendCode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
