@@ -35,6 +35,7 @@ public class MatchingAngles : MonoBehaviour
 
     private bool matched = false;
     private bool allowDisconnect;
+    private bool isSamplingPaused;
 
     public bool isDisconnected { get; set; } = true;
 
@@ -44,8 +45,9 @@ public class MatchingAngles : MonoBehaviour
 
         var obj1matrix = Matrix4x4.Rotate(object1.transform.rotation);
         var obj2matrix = Matrix4x4.Rotate(object2.transform.rotation);
-
         currentDistance = Utils.DistMatrices(obj1matrix, obj2matrix);
+
+        //currentDistance = Mathf.Abs(Quaternion.Dot(object1.transform.rotation, object2.transform.rotation));
 
         var absdiffCurrPrev = Mathf.Abs(prevDistance - currentDistance);
 
@@ -68,9 +70,10 @@ public class MatchingAngles : MonoBehaviour
         // If rotations are not matched 
         if (!matched)
         {
+            if (isSamplingPaused) return;
 
-            if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Sampling"))
-                stateMachine.SetTrigger("GotoSampling");
+            //if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Sampling"))
+            //    stateMachine.SetTrigger("GotoSampling");
 
             // Start sampling if rotartions are starting to match
             if (absdiffCurrPrev < threashold)
@@ -101,6 +104,8 @@ public class MatchingAngles : MonoBehaviour
         {
             currentMatchSamples-=2;
             matched = false;
+            if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Sampling"))
+                stateMachine.SetTrigger("GotoSampling");
         }
 
     }
@@ -120,6 +125,15 @@ public class MatchingAngles : MonoBehaviour
     public void AllowDisconnection()
     {
         allowDisconnect = true;
+    }
+
+    public void PauseSampling()
+    {
+        isSamplingPaused = true;
+    }
+    public void ResumeSampling()
+    {
+        isSamplingPaused = false;
     }
 
 }

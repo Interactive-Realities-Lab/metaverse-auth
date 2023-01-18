@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StablishConnectionKeyboard : MonoBehaviour, IInputStablishConnection
+public class StablishConnection : MonoBehaviour, IInputStablishConnection
 {
     [SerializeField] private MatchingAngles matchingAngles;
 
@@ -12,12 +12,4 @@ public class StablishConnectionKeyboard : MonoBehaviour, IInputStablishConnectio
             matchingAngles.isDisconnected = false;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Connect();
-        }        
-    }
 }
