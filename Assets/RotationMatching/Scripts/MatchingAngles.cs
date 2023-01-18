@@ -112,14 +112,19 @@ public class MatchingAngles : MonoBehaviour
 
     private void Disconnect()
     {
+        Reset();
+
+        stateMachine.SetTrigger("GotoNotMatched");
+    }
+
+    public void Reset()
+    {
         currentMatchSamples = 0;
         matched = false;
         isDisconnected = true;
         currentRotSampling = 0;
         prevDistance = 0;
         allowDisconnect = false;
-
-        stateMachine.SetTrigger("GotoNotMatched");
     }
 
     public void AllowDisconnection()
