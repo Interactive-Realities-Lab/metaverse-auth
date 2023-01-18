@@ -8,8 +8,8 @@ public class StablishConnectionKeyboard : MonoBehaviour, IInputStablishConnectio
 
     public void Connect()
     {
-        if (matchingAngles.connectionLost)
-            matchingAngles.connectionLost = false;
+        if (matchingAngles.isDisconnected)
+            matchingAngles.isDisconnected = false;
     }
 
     // Update is called once per frame

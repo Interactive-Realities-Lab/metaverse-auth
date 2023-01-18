@@ -12,8 +12,8 @@ public class StablishConnectionController : MonoBehaviour, IInputStablishConnect
     public void Connect()
     {
         Debug.Log("AAAA");
-        if (matchingAngles.connectionLost)
-            matchingAngles.connectionLost = false;
+        if (matchingAngles.isDisconnected)
+            matchingAngles.isDisconnected = false;
     }
 
     private void Awake()
