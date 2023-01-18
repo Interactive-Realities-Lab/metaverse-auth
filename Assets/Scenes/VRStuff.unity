@@ -205,8 +205,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1146081226}
-        m_TargetAssemblyTypeName: ControlUIFeedback, Assembly-CSharp
+      - m_Target: {fileID: 1146081228}
+        m_TargetAssemblyTypeName: UIFeedbackPlayArea, Assembly-CSharp
         m_MethodName: NotMaching
         m_Mode: 1
         m_Arguments:
@@ -468,7 +468,7 @@ MonoBehaviour:
   m_UIElement: {fileID: 227310384}
   m_Camera: {fileID: 297165332}
   m_RotateWithCamera: 1
-  m_FollowSpeed: 10
+  m_FollowSpeed: 5
 --- !u!1 &228531395
 GameObject:
   m_ObjectHideFlags: 0
@@ -3285,18 +3285,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1146081226}
-        m_TargetAssemblyTypeName: ControlUIFeedback, Assembly-CSharp
-        m_MethodName: Mached
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
       - m_Target: {fileID: 1644133640}
         m_TargetAssemblyTypeName: ProgressBar, Assembly-CSharp
         m_MethodName: StartUpdateProgressBar
@@ -3336,6 +3324,18 @@ MonoBehaviour:
       - m_Target: {fileID: 767451042}
         m_TargetAssemblyTypeName: HandleConnectionState, Assembly-CSharp
         m_MethodName: GotoConnectedState
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 1146081228}
+        m_TargetAssemblyTypeName: UIFeedbackPlayArea, Assembly-CSharp
+        m_MethodName: Mached
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3610,7 +3610,8 @@ GameObject:
   - component: {fileID: 1146081224}
   - component: {fileID: 1146081223}
   - component: {fileID: 1146081222}
-  - component: {fileID: 1146081226}
+  - component: {fileID: 1146081228}
+  - component: {fileID: 1146081227}
   m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
@@ -3709,7 +3710,19 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &1146081226
+--- !u!225 &1146081227
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1146081219}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &1146081228
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3718,12 +3731,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1146081219}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ac95ba492a500b4ca7cd0c43649d482, type: 3}
+  m_Script: {fileID: 11500000, guid: e7139e1cdb8524e41a2959ede09bb2b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  colorSampling: {r: 0, g: 0.36835432, b: 1, a: 0.78431374}
-  colorMatching: {r: 0.18560876, g: 0.9150943, b: 0.34614238, a: 0.78431374}
-  colorNotMatching: {r: 0.9245283, g: 0.2660199, b: 0.2660199, a: 0.78431374}
+  canvas: {fileID: 1146081227}
+  colorSampling: {r: 0, g: 0.36862746, b: 1, a: 0.78431374}
+  colorMatching: {r: 0.18431373, g: 0.91372555, b: 0.34509805, a: 0.78431374}
+  colorNotMatching: {r: 0.92549026, g: 0.26666668, b: 0.26666668, a: 0.78431374}
   background: {fileID: 1644133638}
   text: {fileID: 1543783693}
 --- !u!1 &1165417286 stripped
@@ -4823,7 +4837,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!223 &1463078355
 Canvas:
   m_ObjectHideFlags: 0
@@ -7322,8 +7336,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1146081226}
-        m_TargetAssemblyTypeName: ControlUIFeedback, Assembly-CSharp
+      - m_Target: {fileID: 1146081228}
+        m_TargetAssemblyTypeName: UIFeedbackPlayArea, Assembly-CSharp
         m_MethodName: Sampling
         m_Mode: 1
         m_Arguments:
@@ -8060,8 +8074,8 @@ MonoBehaviour:
   m_LookatCamera: 1
   m_UIElement: {fileID: 8293533729936726369}
   m_Camera: {fileID: 297165332}
-  m_RotateWithCamera: 0
-  m_FollowSpeed: 1
+  m_RotateWithCamera: 1
+  m_FollowSpeed: 0.5
 --- !u!224 &8773122087949398576
 RectTransform:
   m_ObjectHideFlags: 0
