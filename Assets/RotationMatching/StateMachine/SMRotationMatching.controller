@@ -111,8 +111,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cc85ca6a6f55194195ea071785f5d31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OnSamplingPausedEnter: {fileID: 0}
-  OnSamplingPausedExit: {fileID: 0}
+  OnSamplingPausedEnter: {fileID: 11400000, guid: dc7e3b322c8ac94458dd06e092b64207, type: 2}
+  OnSamplingPausedExit: {fileID: 11400000, guid: b19be4dee08d5e04eafdf5187f2d817d, type: 2}
 --- !u!114 &-292388656961112800
 MonoBehaviour:
   m_ObjectHideFlags: 1
