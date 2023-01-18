@@ -4,9 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using TMPro;
+using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class MorseInput : MonoBehaviour
 {
+    private ActionBasedController controller = null;
+    public InputActionReference inputDigit = null;
+    public InputActionReference removeSegment = null;
+    public InputActionReference accept = null;
     public TextMeshProUGUI displayText;
 
     public MorseSegment[] segments;
@@ -37,7 +43,35 @@ public class MorseInput : MonoBehaviour
 
         slider.transform.localScale = Vector3.zero;
 
+        controller = GetComponent<ActionBasedController>();
+        inputDigit.action.started += InputDigit;
+        inputDigit.action.canceled += InputDigitRelease;
+        removeSegment.action.started += RemoveSegment;
+        accept.action.started += Accept;
     }
+
+    private void InputDigit(InputAction.CallbackContext context)
+    {
+        OnInputPressed();
+    }
+
+    private void InputDigitRelease(InputAction.CallbackContext context)
+    {
+        OnInputReleased();
+    }
+
+    private void RemoveSegment(InputAction.CallbackContext context)
+    {
+
+        ResetSegment();
+    }
+
+    private void Accept(InputAction.CallbackContext context)
+    {
+
+        AcceptSegment();
+    }
+
 
     public void ResetSegment()
     {
@@ -107,7 +141,7 @@ public class MorseInput : MonoBehaviour
     }
 }
 
-[CustomEditor(typeof(MorseInput))]
+//[CustomEditor(typeof(MorseInput))]
 public class MorseInputEditor : Editor
 {
     private bool inputToggled = false;

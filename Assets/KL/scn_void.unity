@@ -1084,6 +1084,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ba81085bef84f04d901987c4905f9f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inputDigit: {fileID: -1475514381895521871, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  removeSegment: {fileID: -4732371126770623148, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  accept: {fileID: -5271071346373882381, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   displayText: {fileID: 183302959}
   segments: []
   exponentialSpeed: 0.25
