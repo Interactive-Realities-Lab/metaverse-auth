@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class ConstantRotation : MonoBehaviour
 {
-    private float degreesPerSecond = 10f;
+    [Range(0,100)]
+    [SerializeField] private float degreesPerSecond = 10f;
     [SerializeField] private bool allowRotation = false;
 
     // Start is called before the first frame update
