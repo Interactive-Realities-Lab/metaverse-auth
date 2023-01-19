@@ -90,7 +90,7 @@ public class MorseInput : MonoBehaviour
 
     public bool CheckOutput()
     {
-        return output == "..-  -.  -.-.  --.";
+        return output == "..- -. -.-. --.";
     }
 
     public void OnInputPressed()
@@ -205,7 +205,7 @@ public static class StringExtension
         }
         else
         {
-            return s;
+            return "";
         }
     }
 }
