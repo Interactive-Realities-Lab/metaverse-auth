@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.3069224, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -326,6 +326,7 @@ GameObject:
   - component: {fileID: 228531398}
   - component: {fileID: 228531399}
   - component: {fileID: 228531400}
+  - component: {fileID: 228531401}
   m_Layer: 0
   m_Name: RotationMatching
   m_TagString: Untagged
@@ -369,7 +370,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &228531398
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -386,7 +387,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &228531399
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -412,6 +413,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   matchingAngles: {fileID: 228531396}
+--- !u!114 &228531401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 228531395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd5ef38e1ad1af14f863c3f19a93c16e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  matchingAngles: {fileID: 228531396}
+  controllerTrigger: {fileID: -6131295136447488360, guid: c348712bda248c246b8c49b3db54643f, type: 3}
 --- !u!1 &235184210
 GameObject:
   m_ObjectHideFlags: 0
@@ -667,6 +682,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cca21a0156c06f041b534c5a65816689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  degreesPerSecond: 10
   allowRotation: 1
 --- !u!65 &520214520
 BoxCollider:
@@ -1784,6 +1800,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cca21a0156c06f041b534c5a65816689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  degreesPerSecond: 10
   allowRotation: 1
 --- !u!1 &1245300891
 GameObject:
@@ -1880,6 +1897,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+--- !u!1 &1255102425 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9014170785475729474, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1255102426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255102425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6843d1d657fab1340bbdfc2c6e1be935, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonAction: {fileID: 71718557472615887, guid: c348712bda248c246b8c49b3db54643f, type: 3}
 --- !u!1 &1342307438
 GameObject:
   m_ObjectHideFlags: 0
