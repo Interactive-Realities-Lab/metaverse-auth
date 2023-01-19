@@ -6,9 +6,13 @@ using UnityEditor;
 using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Events;
 
 public class MorseInput : MonoBehaviour
 {
+    public UnityEvent OnCorrectInput;
+    public UnityEvent OnWrongInput;
+
     private ActionBasedController controller = null;
     public InputActionReference inputDigit = null;
     public InputActionReference removeSegment = null;
@@ -31,6 +35,7 @@ public class MorseInput : MonoBehaviour
 
     private bool isInputHeld = false;
     private Slider slider;
+    private bool isAllowInput;
 
     private void Awake()
     {
@@ -78,14 +83,28 @@ public class MorseInput : MonoBehaviour
         output = StringExtension.RemoveLastWord(output);
     }
 
+
     public void AcceptSegment()
     {
-        if(output.Split(" ").Length == 4)
+        if (output.Split(" ").Length == 4)
         {
-           Debug.Log( CheckOutput());   
+            var result = CheckOutput();
+            if (result)
+                OnCorrectInput?.Invoke();
+            else
+                OnWrongInput?.Invoke();
+
+            Debug.Log(result);
+
         }
 
-        output += " ";
+        if(output.Length > 0 && output[output.Length-1] != ' ')
+            output += " ";
+    }
+
+    public void     ResetOutput()
+    {
+        output = "";
     }
 
     public bool CheckOutput()
@@ -106,11 +125,13 @@ public class MorseInput : MonoBehaviour
 
     public void OnInputReleased()
     {
+        if (!isAllowInput) return;
+
         if (isInputHeld)
         {
             StopAllCoroutines();
 
-            if(slider.value > 0.99)
+            if (slider.value > 0.99)
             {
                 output += "-";
             }
@@ -138,6 +159,44 @@ public class MorseInput : MonoBehaviour
     private void Update()
     {
         displayText.text = output;
+
+  /*      if (output.Length <= 0)
+        {
+            return;
+        }
+
+        // For each segment
+        for (int i = 0; i < segments.Length; i++)
+        {
+            MorseSegment currentSegment = segments[i];
+            // for each digit in current segment
+            foreach(Image im in currentSegment.digits)
+            {
+                Destroy(im.gameObject);
+
+            }
+
+            // Clear digits list
+            currentSegment.digits.Clear();
+
+            string[] stringSegments = output.Split(" ");
+
+            if(stringSegments.Length >= i+1)
+            {
+                for (int c = 0; c < stringSegments[i].Length; c++)
+                {
+                    currentSegment.AddNewDigit();
+                    currentSegment.SetDigit(c, stringSegments[i][c] == '.' ? true : false);
+                }
+            }
+        }
+*/
+
+    }
+
+    public void AllowInput(bool value)
+    {
+        isAllowInput = value;
     }
 }
 

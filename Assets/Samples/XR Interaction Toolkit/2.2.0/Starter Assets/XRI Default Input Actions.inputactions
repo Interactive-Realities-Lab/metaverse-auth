@@ -909,7 +909,7 @@
                 {
                     "name": "",
                     "id": "13c06650-b787-4f3e-9d5d-f66b377b2daf",
-                    "path": "<XRController>{LeftHand}/triggerPressed",
+                    "path": "<XRController>{RightHand}/triggerPressed",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
@@ -920,7 +920,7 @@
                 {
                     "name": "",
                     "id": "9e7ce1cf-7745-4398-8c5c-2c4e3f570daf",
-                    "path": "<XRController>{LeftHand}/gripPressed",
+                    "path": "<XRController>{RightHand}/gripPressed",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
@@ -931,7 +931,7 @@
                 {
                     "name": "",
                     "id": "730ba0a7-a8fc-4bc2-b20c-e8c86492d733",
-                    "path": "<Keyboard>/space",
+                    "path": "<XRController>{LeftHand}/triggerPressed",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",

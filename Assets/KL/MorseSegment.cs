@@ -33,6 +33,15 @@ public class MorseSegment : MonoBehaviour
         panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, digits.Count * 80 + (digits.Count - 1) * 10 + 20);
     }
 
+    private void Start()
+    {
+        AddNewDigit();
+        AddNewDigit();
+        AddNewDigit();
+        AddNewDigit();
+        AddNewDigit();
+    }
+
     public void SetDigit(int index, bool dot)
     {
         digits[index].sprite = dot ? dotSprite : dashSprite;
