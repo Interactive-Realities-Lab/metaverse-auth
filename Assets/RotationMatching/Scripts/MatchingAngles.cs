@@ -21,11 +21,11 @@ public class MatchingAngles : MonoBehaviour
 
 
     //Controls how long 2 rotations need to match until we consider that they are actually matching 
-    public int currentMatchSamples { get; private set; } = 0;
+    public float currentMatchPeriod { get; private set; } = 0;
 
-    [Range(100, 1000)]
-    [SerializeField] private int matchMaxSamples = 500;
-    public int MatchMaxSamples { get => matchMaxSamples; private set => matchMaxSamples = value; }
+    //[Range(100, 1000)]
+    private int maxMatchPeriod = 1;
+    public int maxMatchSamples { get => maxMatchPeriod; private set => maxMatchPeriod = value; }
 
 
     //Sampling rate for the previous rotation diff
@@ -38,6 +38,9 @@ public class MatchingAngles : MonoBehaviour
     private bool isSamplingPaused;
 
     public bool isDisconnected { get; set; } = true;
+
+    [Range(0f, 10f)]
+    [SerializeField] private float progressSpeed;
 
     void FixedUpdate()
     {
@@ -52,16 +55,16 @@ public class MatchingAngles : MonoBehaviour
         var absdiffCurrPrev = Mathf.Abs(prevDistance - currentDistance);
 
         // Check if rotations are matching for some time 
-        if (currentMatchSamples >= MatchMaxSamples && !matched)
+        if (currentMatchPeriod >= maxMatchSamples && !matched)
         {
             referenceValue = currentDistance;
             matched = true;
-            currentMatchSamples = MatchMaxSamples;
+            currentMatchPeriod = maxMatchSamples;
             if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Matched"))
                 stateMachine.SetTrigger("GotoMatched");
         }
 
-        if (currentMatchSamples <= 0 && allowDisconnect)
+        if (currentMatchPeriod <= 0 && allowDisconnect)
         {
             Disconnect();
             return;
@@ -77,11 +80,11 @@ public class MatchingAngles : MonoBehaviour
 
             // Start sampling if rotartions are starting to match
             if (absdiffCurrPrev < threashold)
-                currentMatchSamples++;
-            
+                currentMatchPeriod = Mathf.Min(maxMatchSamples, currentMatchPeriod += Time.deltaTime * progressSpeed);
+           
             // Lost matching... reset sampling
             else
-                currentMatchSamples = Mathf.Max(0, currentMatchSamples-=2);
+                currentMatchPeriod = Mathf.Max(0, currentMatchPeriod -= Time.deltaTime * progressSpeed);
 
 
 
@@ -102,7 +105,7 @@ public class MatchingAngles : MonoBehaviour
 
         if (currentAbsdiff > threashold)
         {
-            currentMatchSamples-=2;
+            currentMatchPeriod = Mathf.Max(0, currentMatchPeriod -= Time.deltaTime * progressSpeed);
             matched = false;
             if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Sampling"))
                 stateMachine.SetTrigger("GotoSampling");
@@ -119,7 +122,7 @@ public class MatchingAngles : MonoBehaviour
 
     public void Reset()
     {
-        currentMatchSamples = 0;
+        currentMatchPeriod = 0;
         matched = false;
         isDisconnected = true;
         currentRotSampling = 0;
@@ -132,13 +135,13 @@ public class MatchingAngles : MonoBehaviour
         allowDisconnect = true;
     }
 
-    public void PauseSampling()
+    public void PauseSampling(bool val)
     {
-        isSamplingPaused = true;
+        isSamplingPaused = val;
     }
-    public void ResumeSampling()
-    {
-        isSamplingPaused = false;
-    }
+    //public void ResumeSampling()
+    //{
+    //    isSamplingPaused = false;
+    //}
 
 }

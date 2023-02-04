@@ -10,6 +10,8 @@ public class ProgressBar : MonoBehaviour
     [SerializeField] private MatchingAngles matchingAngles;
     [SerializeField] private Image image;
 
+    [SerializeField] private AnimationCurve curvedProgress;
+
     private bool updateProgressBar = false;
 
 
@@ -24,7 +26,7 @@ public class ProgressBar : MonoBehaviour
     {
         if (!updateProgressBar) return;
 
-        float t = (float)matchingAngles.currentMatchSamples / (float)matchingAngles.MatchMaxSamples;
+        float t = curvedProgress.Evaluate( (float)matchingAngles.currentMatchPeriod / (float)matchingAngles.maxMatchSamples);
         image.fillAmount = t;
 
     }
