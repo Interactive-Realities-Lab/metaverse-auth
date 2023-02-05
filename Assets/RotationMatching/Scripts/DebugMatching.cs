@@ -4,18 +4,9 @@ using UnityEngine;
 
 public class DebugMatching : MonoBehaviour
 {
-    public void Sampling()
+    public void Message(string message)
     {
-        Debug.Log("SAMPLING");
+        Debug.Log(message);
     }
 
-    public void NotMaching()
-    {
-        Debug.Log("NOT MATCHING");
-    }
-
-    public void Mached()
-    {
-        Debug.Log("MATCHING");
-    }
 }

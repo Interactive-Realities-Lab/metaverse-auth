@@ -771,14 +771,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 228531399}
         m_TargetAssemblyTypeName: DebugMatching, Assembly-CSharp
-        m_MethodName: NotMaching
-        m_Mode: 1
+        m_MethodName: Message
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: NOT MACHING
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1146081228}
@@ -1390,6 +1390,7 @@ GameObject:
   - component: {fileID: 228531399}
   - component: {fileID: 228531400}
   - component: {fileID: 228531401}
+  - component: {fileID: 228531402}
   m_Layer: 0
   m_Name: RotationMatching
   m_TagString: Untagged
@@ -1413,7 +1414,7 @@ MonoBehaviour:
   object1: {fileID: 520214517}
   object2: {fileID: 1231973256}
   threashold: 0.034
-  progressSpeed: 0
+  progressSpeed: 0.01
 --- !u!4 &228531397
 Transform:
   m_ObjectHideFlags: 0
@@ -1489,6 +1490,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   matchingAngles: {fileID: 228531396}
+--- !u!114 &228531402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 228531395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 589806d4f8da99e4bbff8783bf3888fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stateMachine: {fileID: 228531398}
+  head: {fileID: 520214518}
 --- !u!1 &235184210
 GameObject:
   m_ObjectHideFlags: 0
@@ -2502,7 +2517,7 @@ RectTransform:
   m_Children:
   - {fileID: 976392866}
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -4481,7 +4496,7 @@ Transform:
   m_Children:
   - {fileID: 579631952}
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &774178857
 GameObject:
@@ -5956,6 +5971,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 228531402}
+        m_TargetAssemblyTypeName: CheckHeadMovements, Assembly-CSharp
+        m_MethodName: EnableCheck
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &901544226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5972,10 +5999,46 @@ MonoBehaviour:
   unityEventResponse:
     m_PersistentCalls:
       m_Calls:
+      - m_Target: {fileID: 228531399}
+        m_TargetAssemblyTypeName: DebugMatching, Assembly-CSharp
+        m_MethodName: Message
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: PAUSED
+          m_BoolArgument: 1
+        m_CallState: 2
       - m_Target: {fileID: 228531396}
         m_TargetAssemblyTypeName: MatchingAngles, Assembly-CSharp
         m_MethodName: PauseSampling
         m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 228531402}
+        m_TargetAssemblyTypeName: CheckHeadMovements, Assembly-CSharp
+        m_MethodName: EnableCheck
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 1463078356}
+        m_TargetAssemblyTypeName: ControlUIFeedback, Assembly-CSharp
+        m_MethodName: Paused
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -6875,14 +6938,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 228531399}
         m_TargetAssemblyTypeName: DebugMatching, Assembly-CSharp
-        m_MethodName: Mached
-        m_Mode: 1
+        m_MethodName: Message
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: MATCHING
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1644133640}
@@ -8968,6 +9031,7 @@ MonoBehaviour:
   colorSampling: {r: 0, g: 0.36835432, b: 1, a: 0.78431374}
   colorMatching: {r: 0.18560876, g: 0.9150943, b: 0.34614238, a: 0.78431374}
   colorNotMatching: {r: 0.9245283, g: 0.2660199, b: 0.2660199, a: 0.78431374}
+  colorPaused: {r: 1, g: 0.80482066, b: 0, a: 0.78431374}
   background: {fileID: 1870418266}
   text: {fileID: 2001275325}
 --- !u!4 &1466706618 stripped
@@ -9171,7 +9235,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!223 &1468707245
 Canvas:
   m_ObjectHideFlags: 0
@@ -10076,8 +10140,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -10085,52 +10149,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!1 &1661477487
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1661477489}
-  - component: {fileID: 1661477488}
-  m_Layer: 0
-  m_Name: HandleScenes
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1661477488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1661477487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36ce346e34926d14599898c3f060541c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lobby: {fileID: 1501629967}
-  playArea: {fileID: 116620198}
---- !u!4 &1661477489
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1661477487}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.6442676, y: 0.11395645, z: -1.8032885}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1674422863
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11728,7 +11746,25 @@ MonoBehaviour:
   image: {fileID: 1870418266}
   curvedProgress:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -13218,6 +13254,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+      - m_Target: {fileID: 228531402}
+        m_TargetAssemblyTypeName: CheckHeadMovements, Assembly-CSharp
+        m_MethodName: EnableCheck
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2119829682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13236,14 +13284,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 228531399}
         m_TargetAssemblyTypeName: DebugMatching, Assembly-CSharp
-        m_MethodName: Sampling
-        m_Mode: 1
+        m_MethodName: Message
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: SAMPLING
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1146081228}
@@ -13317,6 +13365,18 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 228531402}
+        m_TargetAssemblyTypeName: CheckHeadMovements, Assembly-CSharp
+        m_MethodName: EnableCheck
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
         m_CallState: 2
 --- !u!1 &196977305468683332
 GameObject:
@@ -14004,7 +14064,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 273, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8773122087949398577

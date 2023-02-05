@@ -42,10 +42,10 @@ public class MatchingAngles : MonoBehaviour
     [Range(0f, 10f)]
     [SerializeField] private float progressSpeed;
 
-    void FixedUpdate()
+    void Update()
     {
         if(isDisconnected) return;
-
+        
         var obj1matrix = Matrix4x4.Rotate(object1.transform.rotation);
         var obj2matrix = Matrix4x4.Rotate(object2.transform.rotation);
         currentDistance = Utils.DistMatrices(obj1matrix, obj2matrix);

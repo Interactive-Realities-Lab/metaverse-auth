@@ -11,6 +11,7 @@ public class ControlUIFeedback : MonoBehaviour
     [SerializeField] private Color colorSampling;
     [SerializeField] private Color colorMatching;
     [SerializeField] private Color colorNotMatching;
+    [SerializeField] private Color colorPaused;
 
     [SerializeField] private Image background;
     [SerializeField] private TMP_Text text;
@@ -33,6 +34,11 @@ public class ControlUIFeedback : MonoBehaviour
         text.text = "Parity Stablished";
     }
 
+    public void Paused()
+    {
+        background.color = colorPaused;
+        text.text = "Move to Continue ...";
+    }
 
 
 }
