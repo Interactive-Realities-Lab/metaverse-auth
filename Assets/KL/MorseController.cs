@@ -117,11 +117,10 @@ public class MorseController : MonoBehaviour
         if (Segment.Length > 0) // continue here
         {
             display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
-            segmentIndex++;
+            segmentIndex = Mathf.Min(3, segmentIndex+1);
 
             if (segmentIndex >= 3)
             {
-                //display.lights[segmentIndex].SetActive(true);
                 CheckOutput();
             }
         }
