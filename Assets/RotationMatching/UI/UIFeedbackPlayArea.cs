@@ -12,6 +12,8 @@ public class UIFeedbackPlayArea : MonoBehaviour
     [SerializeField] private Color colorMatching;
     [SerializeField] private Color colorNotMatching;
 
+    [SerializeField] private AnimationCurve fadeCurve;
+
     [SerializeField] private Image background;
     [SerializeField] private TMP_Text text;
 
@@ -54,8 +56,11 @@ public class UIFeedbackPlayArea : MonoBehaviour
     {
         if (!allowFade) return;
 
-        currentAlpha = Mathf.MoveTowards(currentAlpha, desiredAlpha, 2.0f * Time.deltaTime);
-        canvas.alpha = currentAlpha;
+        currentAlpha = Mathf.MoveTowards(currentAlpha, desiredAlpha, Time.deltaTime);
+
+
+
+        canvas.alpha = fadeCurve.Evaluate(currentAlpha);
     }
 
 }
