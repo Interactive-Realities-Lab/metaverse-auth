@@ -54,9 +54,27 @@
             "id": "162a50c5-cb65-4260-9ba9-960647c04742",
             "actions": [
                 {
-                    "name": "SendCode",
+                    "name": "Enter",
                     "type": "Button",
                     "id": "8eb664d7-d31c-4879-9e80-c70385fcfc31",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Backspace",
+                    "type": "Button",
+                    "id": "0088cb29-08b8-4abb-bd80-8d127370e6c6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "InputDigit",
+                    "type": "Button",
+                    "id": "d4144427-16fb-42aa-91e7-e30fac27cc1d",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -66,12 +84,12 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "f4b60b35-7951-40a6-9ee7-8073d42873d2",
-                    "path": "<XRController>{LeftHand}/triggerPressed",
+                    "id": "7554f317-a157-4ae1-a722-63d570993bad",
+                    "path": "<XRController>{RightHand}/triggerPressed",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "SendCode",
+                    "action": "InputDigit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
