@@ -4,6 +4,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class MorseCodeGenerator : MonoBehaviour {
 
+    public TOTP totp;
+
     //public InputHelpers.Button button = InputHelpers.Button.None;
     private ActionBasedController controller = null;
     public InputActionReference buttonAction = null;
@@ -89,6 +91,9 @@ public class MorseCodeGenerator : MonoBehaviour {
             digitCounter = 0;  //redundant
             actionDelay = -1;  //Wait for tap to give first code
             repeatCounter = maxRepeats;  //redundant
+            if(totp) {
+                initFromString(totp.generateEmulatedCode());
+            }
         } else {
             //Advance code segment on tap
             segmentCounter++;
@@ -128,6 +133,22 @@ public class MorseCodeGenerator : MonoBehaviour {
                 }
             }
 
+        }
+    }
+
+    void initFromString(string codeString) {
+        string[] segments = codeString.Split(" ");
+        Debug.Assert(segments.Length==4);
+        for(int i=0; i<4; i++) {
+            float[] segmentFloats = new float[segments[i].Length];
+            for(int j=0; j<segments[i].Length; j++) {
+                if(segments[i].Substring(j,1).Equals(".")){
+                    segmentFloats[j] = dotTime;
+                }else{
+                    segmentFloats[j] = dashTime;
+                }
+            }
+            code[i] = segmentFloats;
         }
     }
 }
