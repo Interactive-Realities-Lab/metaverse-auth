@@ -10,6 +10,16 @@ using UnityEngine.Events;
 
 public class MorseInput : MonoBehaviour
 {
+    // User starts app
+    // Account selection menu opens
+    // User selects account
+    // OTP menu opens
+    // User initiates OTP generation
+    //
+    // Digits of the first segment are 
+
+
+
     public UnityEvent OnCorrectInput;
     public UnityEvent OnWrongInput;
 
@@ -102,7 +112,7 @@ public class MorseInput : MonoBehaviour
             output += " ";
     }
 
-    public void     ResetOutput()
+    public void ResetOutput()
     {
         output = "";
     }
