@@ -101,7 +101,7 @@ public class MorseCodeGenerator : MonoBehaviour {
 
 
     private void action() {
-        Debug.Log("test");
+        //Debug.Log("test");
         if(segmentCounter >= 0 && segmentCounter < code.Length) {
             //A valid code segment can be returned
 
