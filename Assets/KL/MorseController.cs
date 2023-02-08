@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine.InputSystem;
+using UnityEngine.Events;
 
 public class MorseController : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class MorseController : MonoBehaviour
     public bool simulateGo = false;
     [Range(0, 1)] public float exponentialSpeed = 0.3f;
     public float linearSpeed = 1;
+
+    [SerializeField] private UnityEvent OnMorseCodeEndInput;
 
     // Runtime Variables
     public string Segment
@@ -123,6 +126,8 @@ public class MorseController : MonoBehaviour
             {
                 //display.lights[segmentIndex].SetActive(true);
                 CheckOutput();
+                OnMorseCodeEndInput?.Invoke();
+
             }
         }
 
