@@ -142,6 +142,12 @@ public class MorseController : MonoBehaviour
 
     public void OnInputPressed()
     {
+        // If max digit limit reached don't execute.
+        if(Segment.Length > 3)
+        {
+            return;
+        }
+
         // Only run the first time input is held.
         if (!isInputHeld)
         {
@@ -153,6 +159,13 @@ public class MorseController : MonoBehaviour
 
     public void OnInputReleased()
     {
+        // If max digit limit reached don't execute.
+        if (Segment.Length > 3)
+        {
+            isInputHeld = false;
+            return;
+        }
+
         if (!isInputHeld)
         {
             return;
