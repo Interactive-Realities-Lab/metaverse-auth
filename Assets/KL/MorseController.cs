@@ -5,10 +5,15 @@ using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class MorseController : MonoBehaviour
 {
+   
+
     [Header("References")]
+    [SerializeField] XRRayInteractor ray;
+    [SerializeField] TOTP totp;
     public Slider slider;
     public MorseCodeDisplayer display;
     public InputActionReference inputDigit = null;
@@ -43,7 +48,7 @@ public class MorseController : MonoBehaviour
 
     }
     private int segmentIndex = 0;
-    private string[] output = new string[4] {"", "", "", ""};
+    private string[] output = new string[4] { "", "", "", "" };
     private bool isInputHeld = false;
 
     private void Awake()
@@ -61,37 +66,38 @@ public class MorseController : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(Output);
+
+        /*        Debug.Log(Output);
 
 
-        if (simulateInput)
-        {
-            if(!isInputHeld)
-            {
-                OnInputPressed();
-                isInputHeld = true;
-            }
-        }
-        else
-        {
-            if (isInputHeld)
-            {
-                OnInputReleased();
-                isInputHeld = false;
-            }
-        }
+                if (simulateInput)
+                {
+                    if(!isInputHeld)
+                    {
+                        OnInputPressed();
+                        isInputHeld = true;
+                    }
+                }
+                else
+                {
+                    if (isInputHeld)
+                    {
+                        OnInputReleased();
+                        isInputHeld = false;
+                    }
+                }
 
-        if (simulateDelete)
-        {
-            ResetSegment();
-            simulateDelete = false;
-        }
+                if (simulateDelete)
+                {
+                    ResetSegment();
+                    simulateDelete = false;
+                }
 
-        if (simulateGo)
-        {
-            AcceptSegment();
-            simulateGo = false;
-        }
+                if (simulateGo)
+                {
+                    AcceptSegment();
+                    simulateGo = false;
+                }*/
     }
 
     private void InputDigit(InputAction.CallbackContext context)
@@ -120,11 +126,12 @@ public class MorseController : MonoBehaviour
         if (Segment.Length > 0) // continue here
         {
             display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
-            segmentIndex = Mathf.Min(3, segmentIndex+1);
+            segmentIndex = Mathf.Min(3, segmentIndex + 1);
 
-            if (segmentIndex >= 3)
+            if (segmentIndex > 3)
             {
-                CheckOutput();
+                Debug.Log( totp.checkCode(Output));
+                //CheckOutput();
                 OnMorseCodeEndInput?.Invoke();
 
             }
@@ -142,8 +149,12 @@ public class MorseController : MonoBehaviour
 
     public void OnInputPressed()
     {
+        ray.TryGetCurrentRaycast(out var _hit, out var _index, out var ui_hit, out var ttt, out var isHitUI);
+
+        if (isHitUI) return;
+
         // If max digit limit reached don't execute.
-        if(Segment.Length > 3)
+        if (Segment.Length > 3)
         {
             return;
         }
@@ -153,7 +164,7 @@ public class MorseController : MonoBehaviour
         {
             isInputHeld = true;
             StartCoroutine("IncreaseSliderValue");
-            slider.transform.localScale = Vector3.one * 0.01f;
+            slider.transform.localScale = Vector3.one * 2f;
         }
     }
 

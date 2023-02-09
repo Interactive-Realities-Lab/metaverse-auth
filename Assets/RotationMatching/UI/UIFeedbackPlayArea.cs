@@ -28,7 +28,7 @@ public class UIFeedbackPlayArea : MonoBehaviour
     {
         if (!allowFade) return;
         background.color = colorSampling;
-        text.text = "Stabilishing Parity ...";
+        text.text = "Establishing Parity ...";
         desiredAlpha = 1;
         currentAlpha = 0;
 
@@ -38,13 +38,13 @@ public class UIFeedbackPlayArea : MonoBehaviour
     public void NotMaching()
     {
         background.color = colorNotMatching;
-        text.text = "Parity Lost. \n Press Space to start over.";
+        text.text = "Parity Lost.";
     }
 
     public void Mached()
     {
         background.color = colorMatching;
-        text.text = "Parity Stablished";
+        text.text = "Parity Etablished";
         desiredAlpha = 0;
         currentAlpha = 1;
 

@@ -19,19 +19,19 @@ public class ControlUIFeedback : MonoBehaviour
     public void Sampling()
     {
         background.color = colorSampling;
-        text.text = "Stabilishing Parity ...";
+        text.text = "Establishing Parity ...";
     }
 
     public void NotMaching()
     {
         background.color = colorNotMatching;
-        text.text = "Parity Lost. \n Press Space to start over.";
+        text.text = "Parity Lost.";
     }
 
     public void Mached()
     {
         background.color = colorMatching;
-        text.text = "Parity Stablished";
+        text.text = "Parity Established";
     }
 
     public void Paused()

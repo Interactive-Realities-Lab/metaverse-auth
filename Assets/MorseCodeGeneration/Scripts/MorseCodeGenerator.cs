@@ -80,6 +80,7 @@ public class MorseCodeGenerator : MonoBehaviour {
         timePressed = 0;
         longPressHapticRemaining = true;
         actionDelay = -1;
+        
     }
 
     private void keyUp(InputAction.CallbackContext context) {
