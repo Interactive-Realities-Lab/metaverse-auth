@@ -31,7 +31,7 @@ public class TOTP : MonoBehaviour
     
 
     byte[] emulatedSecret;
-    string emulatedUserName = "I dont remember what it was";
+    string emulatedUserName = "random";
     byte[] loginUserSecret;
 
     // Start is called before the first frame update

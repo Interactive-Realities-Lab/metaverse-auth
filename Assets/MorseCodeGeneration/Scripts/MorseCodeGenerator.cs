@@ -13,7 +13,7 @@ public class MorseCodeGenerator : MonoBehaviour {
     const float dashTime = 0.5f;
     const float dotTime = 0.1f;
     const float digitSpacing = 0.5f;
-    const float repeatDelay = 5.0f;
+    const float repeatDelay = 10.0f;
     const float tapCodeDelay = 0.5f;
     const float timeOutPulseTime = 1.0f;
     const float longPressDetectionTime = 0.8f;

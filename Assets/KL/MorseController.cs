@@ -25,7 +25,8 @@ public class MorseController : MonoBehaviour
     [Range(0, 1)] public float exponentialSpeed = 0.3f;
     public float linearSpeed = 1;
 
-    [SerializeField] private UnityEvent OnMorseCodeEndInput;
+    [SerializeField] private UnityEvent OnMorseCodeCorrect;
+    [SerializeField] private UnityEvent OnMorseCodeIncorrect;
 
     // Runtime Variables
     public string Segment
@@ -125,16 +126,21 @@ public class MorseController : MonoBehaviour
     {
         if (Segment.Length > 0) // continue here
         {
+            if (segmentIndex >= 3)
+            {
+                if (!totp.checkCode(Output))
+                {
+                    OnMorseCodeIncorrect?.Invoke();
+                    return;
+                }
+                OnMorseCodeCorrect?.Invoke();
+
+            }
+
             display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
             segmentIndex = Mathf.Min(3, segmentIndex + 1);
 
-            if (segmentIndex > 3)
-            {
-                Debug.Log( totp.checkCode(Output));
-                //CheckOutput();
-                OnMorseCodeEndInput?.Invoke();
 
-            }
         }
 
         display.morseString = Segment;
