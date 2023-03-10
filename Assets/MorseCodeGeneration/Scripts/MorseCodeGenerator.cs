@@ -7,7 +7,7 @@ public class MorseCodeGenerator : MonoBehaviour {
     public TOTP totp;
 
     //public InputHelpers.Button button = InputHelpers.Button.None;
-    private ActionBasedController controller = null;
+    [SerializeField] private ActionBasedController controller = null;
     public InputActionReference buttonAction = null;
 
     const float dashTime = 0.5f;
@@ -36,7 +36,7 @@ public class MorseCodeGenerator : MonoBehaviour {
     private float[][] code = {new float[] {dotTime,dotTime,dashTime},new float[] {dashTime,dotTime},new float[] {dashTime,dotTime,dashTime,dotTime},new float[] {dashTime,dashTime,dotTime}};
 
     private void Awake() {
-        controller = GetComponent<ActionBasedController>();
+        //controller = GetComponent<ActionBasedController>();
         buttonAction.action.started += keyDown;
         buttonAction.action.canceled += keyUp;
     }

@@ -221,7 +221,7 @@ public class MorseController : MonoBehaviour
     }
 }
 
-// [CustomEditor(typeof(MorseController))]
+//[CustomEditor(typeof(MorseController))]
 public class newMorseInputEditor : Editor
 {
     private bool inputToggled = false;
