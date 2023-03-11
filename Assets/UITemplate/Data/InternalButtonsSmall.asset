@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ec2184459ac0db46a27f489b736630c, type: 3}
+  m_Name: InternalButtonsSmall
+  m_EditorClassIdentifier: 
+  buttonStandardSprite: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  defautButtonColor: {fileID: 11400000, guid: d452188862b6d3844a957fcc279beeaf, type: 2}
+  hoverButtonColor: {fileID: 11400000, guid: 7db8df76bb73e074d9f071e66720dfba, type: 2}
+  selectedButtonColor: {fileID: 11400000, guid: 0283c230019efac4f8c9446f78daab97, type: 2}
+  pressedButtonColor: {fileID: 11400000, guid: 722205323c5ce1f47a8c5eda0d91653d, type: 2}
+  disabledButtonColor: {fileID: 11400000, guid: bcaad2fa00ea6ba428e541e79cc1c50d, type: 2}
+  fontType: {fileID: 11400000, guid: 3e9c47c5e956e1b40978fd1a2cfa8336, type: 2}
+  fontColor: {fileID: 11400000, guid: a2324aca2ce4c7a4293e6ec4b89c5fa8, type: 2}
+  fontSize: 45
