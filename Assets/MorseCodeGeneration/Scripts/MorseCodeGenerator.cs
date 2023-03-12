@@ -45,6 +45,7 @@ public class MorseCodeGenerator : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Log(lockCodeRequest);
         lockCodeRequest = false;
         isOTPinitialized = false;
     }
@@ -100,7 +101,7 @@ public class MorseCodeGenerator : MonoBehaviour
             keyDown(asd);
         }
         else if (Input.GetKeyUp(KeyCode.A))
-        { 
+        {
             keyUp(asd);
         }
     }
@@ -136,7 +137,7 @@ public class MorseCodeGenerator : MonoBehaviour
             OnOTPInitiated?.Invoke();
 
         }
-        else if(isOTPinitialized) 
+        else if (isOTPinitialized)
         {
             //Advance code segment on tap
             segmentCounter++;
@@ -208,5 +209,10 @@ public class MorseCodeGenerator : MonoBehaviour
             }
             code[i] = segmentFloats;
         }
+    }
+
+    public void UnlockCodeRequest()
+    {
+        lockCodeRequest = false;
     }
 }

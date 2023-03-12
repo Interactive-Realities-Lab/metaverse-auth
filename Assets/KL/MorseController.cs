@@ -9,7 +9,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class MorseController : MonoBehaviour
 {
-   
+
 
     [Header("References")]
     [SerializeField] XRRayInteractor ray;
@@ -52,8 +52,15 @@ public class MorseController : MonoBehaviour
     private string[] output = new string[4] { "", "", "", "" };
     private bool isInputHeld = false;
 
+    private void OnEnable()
+    {
+        ResetSegment();
+    }
+
     private void Awake()
     {
+        gameObject.SetActive(false);
+
         if (!slider)
         {
             slider = GetComponent<Slider>();
@@ -67,7 +74,7 @@ public class MorseController : MonoBehaviour
 
     private void Update()
     {
-
+ 
         /*        Debug.Log(Output);
 
 
@@ -120,6 +127,7 @@ public class MorseController : MonoBehaviour
     {
         Segment = "";
         display.morseString = Segment;
+        segmentIndex = 0;
     }
 
     public void AcceptSegment()
@@ -127,18 +135,18 @@ public class MorseController : MonoBehaviour
         if (Segment.Length > 0) // continue here
         {
             if (segmentIndex >= 3)
+        {
+            if (!totp.checkCode(Output))
             {
-                if (!totp.checkCode(Output))
-                {
-                    OnMorseCodeIncorrect?.Invoke();
-                    return;
-                }
-                OnMorseCodeCorrect?.Invoke();
-
+                OnMorseCodeIncorrect?.Invoke();
+                return;
             }
+            OnMorseCodeCorrect?.Invoke();
 
-            //display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
-            segmentIndex = Mathf.Min(3, segmentIndex + 1);
+        }
+
+        //display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
+        segmentIndex = Mathf.Min(3, segmentIndex + 1);
 
 
         }
