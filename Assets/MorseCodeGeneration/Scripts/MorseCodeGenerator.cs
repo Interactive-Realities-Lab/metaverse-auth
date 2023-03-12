@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 
@@ -31,9 +32,11 @@ public class MorseCodeGenerator : MonoBehaviour {
     private int digitCounter = -1;
     private int repeatCounter = -1;
 
-
     // ..-  -.  -.-.  --.
     private float[][] code = {new float[] {dotTime,dotTime,dashTime},new float[] {dashTime,dotTime},new float[] {dashTime,dotTime,dashTime,dotTime},new float[] {dashTime,dashTime,dotTime}};
+
+    public UnityEvent OnOTPInitiated;
+    public UnityEvent OnOTPSegment;
 
     private void Awake() {
         //controller = GetComponent<ActionBasedController>();

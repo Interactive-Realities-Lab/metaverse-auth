@@ -14,6 +14,12 @@ public class MorseCodeDisplayer : MonoBehaviour
     [HideInInspector] public string morseString;
     public GameObject[] lights = new GameObject[4];
 
+    private void OnEnable()
+    {
+        ResetLights();
+    }
+
+
     void Update()
     {
         if (morseString == "")
