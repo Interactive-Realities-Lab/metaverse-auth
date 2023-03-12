@@ -34,8 +34,9 @@ public class UIOTPHandler : MonoBehaviour
 
     public void EnableNextPanel()
     {
+            
         DisableAllPanels();
-        EnablePanel(currentEnabled++);
+        EnablePanel(++currentEnabled);
     }
 
     void Start()

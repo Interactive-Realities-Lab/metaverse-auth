@@ -137,7 +137,7 @@ public class MorseController : MonoBehaviour
 
             }
 
-            display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
+            //display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
             segmentIndex = Mathf.Min(3, segmentIndex + 1);
 
 

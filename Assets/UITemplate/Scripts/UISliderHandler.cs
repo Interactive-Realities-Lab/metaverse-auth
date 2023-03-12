@@ -8,7 +8,7 @@ public class UISliderHandler : MonoBehaviour
 
     [SerializeField] private Image image;
     [SerializeField] private AnimationCurve sampleCurve;
-
+    [SerializeField] private ColorVariable dotColor, DashColor;
 
     private void OnEnable()
     {
@@ -20,6 +20,6 @@ public class UISliderHandler : MonoBehaviour
         if (image == null && image.fillAmount == 0) return;
 
         var sampledValue = sampleCurve.Evaluate(image.fillAmount);
-        image.color = Color.Lerp(Color.white, Color.blue, sampledValue);        
+        image.color = Color.Lerp(dotColor.color, DashColor.color, sampledValue);        
     }
 }

@@ -12,12 +12,6 @@ public class MorseCodeDisplayer : MonoBehaviour
 
     public TextMeshProUGUI tmp;
     [HideInInspector] public string morseString;
-    public GameObject[] lights = new GameObject[4];
-
-    private void OnEnable()
-    {
-        ResetLights();
-    }
 
 
     void Update()
@@ -38,11 +32,5 @@ public class MorseCodeDisplayer : MonoBehaviour
         tmp.text = newString;
     }
 
-    public void ResetLights()
-    {
-        foreach(GameObject g in lights)
-        {
-            g.SetActive(false);
-        }  
-    }
+
 }
