@@ -132,7 +132,7 @@ public class MorseCodeGenerator : MonoBehaviour
             {
                 initFromString(totp.generateEmulatedCode());
             }
-            Debug.Log("A---");
+
             isOTPinitialized = true;
             OnOTPInitiated?.Invoke();
 
@@ -144,7 +144,7 @@ public class MorseCodeGenerator : MonoBehaviour
             digitCounter = 0;
             actionDelay = tapCodeDelay;
             repeatCounter = maxRepeats;
-            Debug.Log("B---");
+
             lockCodeRequest = true;
             OnOTPSegment?.Invoke(segmentCounter);
         }
