@@ -48,13 +48,18 @@ public class MorseController : MonoBehaviour
         }
 
     }
+
     private int segmentIndex = 0;
     private string[] output = new string[4] { "", "", "", "" };
     private bool isInputHeld = false;
 
+
+    public bool LockMorseInput { get; set; }
+
     private void OnEnable()
     {
-        ResetSegment();
+        LockMorseInput = true;
+        ResetAll();
     }
 
     private void Awake()
@@ -74,7 +79,7 @@ public class MorseController : MonoBehaviour
 
     private void Update()
     {
- 
+        Debug.Log(Segment);
         /*        Debug.Log(Output);
 
 
@@ -123,10 +128,15 @@ public class MorseController : MonoBehaviour
         output = new string[4] { "", "", "", "" };
     }
 
-    public void ResetSegment()
+    public void ClearSegment()
     {
         Segment = "";
         display.morseString = Segment;
+    }
+
+    public void ResetAll()
+    {
+        ClearSegment();
         segmentIndex = 0;
     }
 
@@ -135,18 +145,18 @@ public class MorseController : MonoBehaviour
         if (Segment.Length > 0) // continue here
         {
             if (segmentIndex >= 3)
-        {
-            if (!totp.checkCode(Output))
             {
-                OnMorseCodeIncorrect?.Invoke();
-                return;
+                if (!totp.checkCode(Output))
+                {
+                    OnMorseCodeIncorrect?.Invoke();
+                    return;
+                }
+                OnMorseCodeCorrect?.Invoke();
+
             }
-            OnMorseCodeCorrect?.Invoke();
 
-        }
-
-        //display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
-        segmentIndex = Mathf.Min(3, segmentIndex + 1);
+            //display.lights[Mathf.Min(segmentIndex, 3)].SetActive(true);
+            segmentIndex = Mathf.Min(3, segmentIndex + 1);
 
 
         }
@@ -163,6 +173,8 @@ public class MorseController : MonoBehaviour
 
     public void OnInputPressed()
     {
+        if (LockMorseInput) return;
+
         ray.TryGetCurrentRaycast(out var _hit, out var _index, out var ui_hit, out var ttt, out var isHitUI);
 
         if (isHitUI) return;
@@ -184,6 +196,12 @@ public class MorseController : MonoBehaviour
 
     public void OnInputReleased()
     {
+ 
+        if (LockMorseInput) return;
+
+        ray.TryGetCurrentRaycast(out var _hit, out var _index, out var ui_hit, out var ttt, out var isHitUI);
+
+        if (isHitUI) return;
         // If max digit limit reached don't execute.
         if (Segment.Length > 3)
         {
@@ -227,7 +245,11 @@ public class MorseController : MonoBehaviour
             yield return null;
         }
     }
+
+
 }
+
+
 
 //[CustomEditor(typeof(MorseController))]
 public class newMorseInputEditor : Editor
