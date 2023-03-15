@@ -2541,6 +2541,7 @@ MonoBehaviour:
   m_Camera: {fileID: 297165332}
   m_RotateWithCamera: 1
   m_FollowSpeed: 5
+  setDistance: 0
 --- !u!1 &228531395
 GameObject:
   m_ObjectHideFlags: 0
@@ -2599,7 +2600,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &228531398
 Animator:
-  serializedVersion: 5
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2616,7 +2617,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &228531399
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9620,7 +9621,7 @@ MonoBehaviour:
   stateMachine: {fileID: 767451043}
 --- !u!95 &767451043
 Animator:
-  serializedVersion: 5
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -9637,7 +9638,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!4 &767451044
 Transform:
   m_ObjectHideFlags: 0
@@ -10104,7 +10105,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   totp: {fileID: 17259225}
+  controller: {fileID: 0}
   buttonAction: {fileID: 4581047855157996965, guid: f6441603d0086684487063be53d1cd31, type: 3}
+  OnOTPInitiated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnOTPSegment:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &805281497 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5991208989370602374, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -19866,11 +19874,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tmp: {fileID: 1561329736}
   morseString: 
-  lights:
-  - {fileID: 1491331237}
-  - {fileID: 1304607115}
-  - {fileID: 1197763915}
-  - {fileID: 1268370937}
 --- !u!114 &1561329736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28197,6 +28200,7 @@ MonoBehaviour:
   m_Camera: {fileID: 297165332}
   m_RotateWithCamera: 1
   m_FollowSpeed: 1
+  setDistance: 1
 --- !u!222 &8773122088561656512
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -17,6 +17,8 @@ namespace VRStandardAssets.Utils
 
         private float m_DistanceFromCamera;                     // The distance the UI should stay from the camera when rotating with it.
 
+        [Range(0.1f, 10f)]
+        [SerializeField] private float setDistance;
 
         private void Start()
         {
@@ -38,7 +40,7 @@ namespace VRStandardAssets.Utils
                 Vector3 targetDirection = Vector3.ProjectOnPlane(m_Camera.forward, Vector3.up).normalized;
 
                 // Calculate a target position from the camera in the direction at the same distance from the camera as it was at Start.
-                Vector3 targetPosition = m_Camera.position + targetDirection * m_DistanceFromCamera;
+                Vector3 targetPosition = m_Camera.position + targetDirection * m_DistanceFromCamera * setDistance;
 
                 // Set the target position  to be an interpolation of itself and the UI's position.
                 targetPosition = Vector3.Lerp(m_UIElement.position, targetPosition, m_FollowSpeed * Time.deltaTime);

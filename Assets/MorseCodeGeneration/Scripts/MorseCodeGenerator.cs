@@ -45,7 +45,6 @@ public class MorseCodeGenerator : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log(lockCodeRequest);
         lockCodeRequest = false;
         isOTPinitialized = false;
     }
@@ -122,7 +121,7 @@ public class MorseCodeGenerator : MonoBehaviour
         if (lockCodeRequest) return;
 
         //Start code generation on long press
-        if (timePressed > longPressDetectionTime)
+        if (timePressed > longPressDetectionTime && !isOTPinitialized)
         {
             segmentCounter = -1;  //Set to -1 so the first tap increments to 0
             digitCounter = 0;  //redundant
