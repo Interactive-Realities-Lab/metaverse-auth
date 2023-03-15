@@ -9,6 +9,10 @@ public class UISliderHandler : MonoBehaviour
     [SerializeField] private Image image;
     [SerializeField] private AnimationCurve sampleCurve;
     [SerializeField] private ColorVariable dotColor, DashColor;
+    [SerializeField] private MorseControllerV2 morseController;
+
+    [Range(0f, 1f)]
+    [SerializeField] private float startFillValue;
 
     private void OnEnable()
     {
@@ -17,7 +21,13 @@ public class UISliderHandler : MonoBehaviour
 
     void Update()
     {
-        if (image == null && image.fillAmount == 0) return;
+        if (!morseController.IsInputHeld)
+        {
+            image.fillAmount = 0;
+            return;
+        }
+
+        image.fillAmount = morseController.HeldValue + startFillValue;
 
         var sampledValue = sampleCurve.Evaluate(image.fillAmount);
         image.color = Color.Lerp(dotColor.color, DashColor.color, sampledValue);        
