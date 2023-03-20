@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -10,6 +11,9 @@ public class MorseControllerV2 : MonoBehaviour
     public InputActionReference inputDigit = null;
     [SerializeField] XRRayInteractor ray;
     [SerializeField] TOTP totp;
+    [SerializeField] private UnityEvent OnMorseCodeCorrect;
+    [SerializeField] private UnityEvent OnMorseCodeIncorrect;
+
     public bool IsInputHeld { get; private set; } = false;
 
     public float HeldValue { get; private set; }
@@ -62,15 +66,17 @@ public class MorseControllerV2 : MonoBehaviour
         listOfSegments = new string[4] { "", "", "", "" };
         LockMorseInput = true;
         IsInputHeld = false;
+        ClearCurrentSegment();
+    }
+
+    public void ClearCurrentSegment()
+    {
+        CurrentSegment = "";
     }
 
     private void OnPress(InputAction.CallbackContext context)
     {
-
-        //Replace this
-        //if (!gameObject.activeInHierarchy) return;
         if (LockMorseInput) return;
-        
 
         //Ignore morse input if clicking in UI Buttons.
         ray.TryGetCurrentRaycast(out var _hit, out var _index, out var ui_hit, out var ttt, out var isHitUI);
@@ -96,7 +102,7 @@ public class MorseControllerV2 : MonoBehaviour
 
         CurrentSegment += HeldValue > dotThreasholdValue ? "-" : ".";
 
-        Debug.Log(CurrentSegment);
+        //Debug.Log(CurrentSegment);
 
         HeldValue = 0;
         IsInputHeld = false;
@@ -116,11 +122,14 @@ public class MorseControllerV2 : MonoBehaviour
 
         if (!totp.checkCode(Output))
         {
-            Debug.Log("Wrong Code");
+            //Debug.Log("Wrong Code");
+            OnMorseCodeIncorrect?.Invoke();
             return;
         }
 
-        Debug.Log("Correct Code");
+        //Debug.Log("Correct Code");
+        OnMorseCodeCorrect?.Invoke();
+        
     }
 
 

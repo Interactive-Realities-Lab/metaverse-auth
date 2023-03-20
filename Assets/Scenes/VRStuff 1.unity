@@ -372,7 +372,6 @@ GameObject:
   - component: {fileID: 17259226}
   - component: {fileID: 17259225}
   - component: {fileID: 17259227}
-  - component: {fileID: 17259228}
   - component: {fileID: 17259229}
   m_Layer: 0
   m_Name: TOTP
@@ -478,8 +477,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 17259228}
-        m_TargetAssemblyTypeName: MorseController, Assembly-CSharp
+      - m_Target: {fileID: 17259229}
+        m_TargetAssemblyTypeName: MorseControllerV2, Assembly-CSharp
         m_MethodName: set_LockMorseInput
         m_Mode: 6
         m_Arguments:
@@ -490,28 +489,21 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &17259228
+--- !u!114 &17259229
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 17259224}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c2d07158eb12bf458cb9aedf46fdeb6, type: 3}
+  m_Script: {fileID: 11500000, guid: c906d1b0adf715441886ae862a841ed2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inputDigit: {fileID: -1475514381895521871, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   ray: {fileID: 1839061665}
   totp: {fileID: 17259225}
-  slider: {fileID: 964854288}
-  display: {fileID: 722224436}
-  inputDigit: {fileID: -1475514381895521871, guid: c348712bda248c246b8c49b3db54643f, type: 3}
-  simulateInput: 0
-  simulateDelete: 0
-  simulateGo: 0
-  exponentialSpeed: 0.4
-  linearSpeed: 1.1
   OnMorseCodeCorrect:
     m_PersistentCalls:
       m_Calls:
@@ -538,6 +530,18 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 17259229}
+        m_TargetAssemblyTypeName: MorseControllerV2, Assembly-CSharp
+        m_MethodName: set_LockMorseInput
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
         m_CallState: 2
   OnMorseCodeIncorrect:
     m_PersistentCalls:
@@ -566,19 +570,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &17259229
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 17259224}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c906d1b0adf715441886ae862a841ed2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inputDigit: {fileID: -1475514381895521871, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+      - m_Target: {fileID: 17259229}
+        m_TargetAssemblyTypeName: MorseControllerV2, Assembly-CSharp
+        m_MethodName: set_LockMorseInput
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
   curve:
     serializedVersion: 2
     m_Curve:
@@ -603,6 +606,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  dotThreasholdValue: 0.6
 --- !u!1001 &18390007
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2318,9 +2322,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 17259228}
-        m_TargetAssemblyTypeName: MorseController, Assembly-CSharp
-        m_MethodName: AcceptSegment
+      - m_Target: {fileID: 17259227}
+        m_TargetAssemblyTypeName: MorseCodeGenerator, Assembly-CSharp
+        m_MethodName: LockCodeRepeat
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2342,22 +2346,22 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 98839146}
-        m_TargetAssemblyTypeName: UIAcceptSegmentButton, Assembly-CSharp
-        m_MethodName: ToogleButtonInteraction
-        m_Mode: 6
+      - m_Target: {fileID: 2039394770}
+        m_TargetAssemblyTypeName: UIControlLights, Assembly-CSharp
+        m_MethodName: SetFinished
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 17259228}
-        m_TargetAssemblyTypeName: MorseController, Assembly-CSharp
-        m_MethodName: set_LockMorseInput
-        m_Mode: 6
+      - m_Target: {fileID: 17259229}
+        m_TargetAssemblyTypeName: MorseControllerV2, Assembly-CSharp
+        m_MethodName: AddSegment
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -2416,6 +2420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9ffd8a7838889049827d431ad4c761a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textfield: {fileID: 722224434}
 --- !u!1 &100796459 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -2695952133490140319, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -12858,7 +12863,7 @@ GameObject:
   - component: {fileID: 722224433}
   - component: {fileID: 722224435}
   - component: {fileID: 722224434}
-  - component: {fileID: 722224436}
+  - component: {fileID: 722224437}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -12983,7 +12988,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 722224432}
   m_CullTransparentMesh: 1
---- !u!114 &722224436
+--- !u!114 &722224437
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -12992,11 +12997,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 722224432}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9285af3a4a5b92b428213b7130ee1bb5, type: 3}
+  m_Script: {fileID: 11500000, guid: f14c95f276590b84e8dc08358c0816bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   tmp: {fileID: 722224434}
-  morseString: 
+  morseController: {fileID: 17259229}
 --- !u!1 &723789696
 GameObject:
   m_ObjectHideFlags: 0
@@ -31979,6 +31984,7 @@ GameObject:
   - component: {fileID: 1664798893}
   - component: {fileID: 1664798892}
   - component: {fileID: 1664798891}
+  - component: {fileID: 1664798895}
   m_Layer: 5
   m_Name: Button (2)
   m_TagString: Untagged
@@ -32064,7 +32070,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1664798893}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 17259229}
+        m_TargetAssemblyTypeName: MorseControllerV2, Assembly-CSharp
+        m_MethodName: ClearCurrentSegment
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1664798893
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32103,6 +32121,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1664798889}
   m_CullTransparentMesh: 1
+--- !u!114 &1664798895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664798889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9ffd8a7838889049827d431ad4c761a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textfield: {fileID: 722224434}
 --- !u!1 &1665175297 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e8277cdf45d57e4680e48afb8a8598e, type: 3}

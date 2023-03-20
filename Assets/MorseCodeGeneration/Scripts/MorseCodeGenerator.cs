@@ -34,6 +34,7 @@ public class MorseCodeGenerator : MonoBehaviour
     private int repeatCounter = -1;
 
     private bool lockCodeRequest = false;
+    private bool lockCodeRepeat = false;
     private bool isOTPinitialized = false;
 
     // ..-  -.  -.-.  --.
@@ -46,6 +47,7 @@ public class MorseCodeGenerator : MonoBehaviour
     private void OnEnable()
     {
         lockCodeRequest = false;
+        lockCodeRepeat = false;
         isOTPinitialized = false;
     }
 
@@ -72,13 +74,16 @@ public class MorseCodeGenerator : MonoBehaviour
             timePressed += Time.deltaTime;
         }
 
-        //Update action timer
-        if (actionDelay >= 0)
+        if (!lockCodeRepeat)
         {
-            actionDelay -= Time.deltaTime;
-            if (actionDelay < 0)
+            //Update action timer
+            if (actionDelay >= 0)
             {
-                action();
+                actionDelay -= Time.deltaTime;
+                if (actionDelay < 0)
+                {
+                    action();
+                }
             }
         }
 
@@ -145,7 +150,9 @@ public class MorseCodeGenerator : MonoBehaviour
             repeatCounter = maxRepeats;
 
             lockCodeRequest = true;
+            lockCodeRepeat = false;
             OnOTPSegment?.Invoke(segmentCounter);
+
         }
 
     }
@@ -213,5 +220,10 @@ public class MorseCodeGenerator : MonoBehaviour
     public void UnlockCodeRequest()
     {
         lockCodeRequest = false;
+    }
+
+    public void LockCodeRepeat()
+    {
+        lockCodeRepeat = true;
     }
 }
