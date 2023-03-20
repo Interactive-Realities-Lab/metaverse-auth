@@ -44,6 +44,8 @@ public class MorseCodeGenerator : MonoBehaviour
     [System.Serializable] public class MyIntEvent : UnityEvent<int> { }
     public MyIntEvent OnOTPSegment;
 
+    public float ActionDelay { get => actionDelay; set => actionDelay = value; }
+
     private void OnEnable()
     {
         lockCodeRequest = false;
@@ -77,10 +79,10 @@ public class MorseCodeGenerator : MonoBehaviour
         if (!lockCodeRepeat)
         {
             //Update action timer
-            if (actionDelay >= 0)
+            if (ActionDelay >= 0)
             {
-                actionDelay -= Time.deltaTime;
-                if (actionDelay < 0)
+                ActionDelay -= Time.deltaTime;
+                if (ActionDelay < 0)
                 {
                     action();
                 }
@@ -115,7 +117,7 @@ public class MorseCodeGenerator : MonoBehaviour
         keyIsPressed = true;
         timePressed = 0;
         longPressHapticRemaining = true;
-        actionDelay = -1;
+        ActionDelay = -1;
 
     }
 
@@ -130,7 +132,7 @@ public class MorseCodeGenerator : MonoBehaviour
         {
             segmentCounter = -1;  //Set to -1 so the first tap increments to 0
             digitCounter = 0;  //redundant
-            actionDelay = -1;  //Wait for tap to give first code
+            ActionDelay = -1;  //Wait for tap to give first code
             repeatCounter = maxRepeats;  //redundant
             if (totp)
             {
@@ -146,7 +148,7 @@ public class MorseCodeGenerator : MonoBehaviour
             //Advance code segment on tap
             segmentCounter++;
             digitCounter = 0;
-            actionDelay = tapCodeDelay;
+            ActionDelay = tapCodeDelay;
             repeatCounter = maxRepeats;
 
             lockCodeRequest = true;
@@ -169,7 +171,7 @@ public class MorseCodeGenerator : MonoBehaviour
             {
                 //A valid digit can be returned.  Trigger haptics, increment digit counter, add actionDelay
                 controller?.SendHapticImpulse(1.0f, code[segmentCounter][digitCounter]);
-                actionDelay = code[segmentCounter][digitCounter] + digitSpacing;
+                ActionDelay = code[segmentCounter][digitCounter] + digitSpacing;
                 digitCounter++;
             }
 
@@ -187,7 +189,7 @@ public class MorseCodeGenerator : MonoBehaviour
                 if (repeatCounter > 0)
                 {
                     repeatCounter--;
-                    actionDelay = repeatDelay;
+                    ActionDelay = repeatDelay;
                     digitCounter = 0;
                 }
             }
