@@ -9,9 +9,12 @@ public class UIControlLights : MonoBehaviour
     [SerializeField] private ColorVariable current;
     [SerializeField] private ColorVariable finished;
 
+    private int currentIndex;
+
     private void OnEnable()
     {
         ResetLights();
+        currentIndex = 0;
     }
     // Start is called before the first frame update
     void Start()
@@ -37,8 +40,8 @@ public class UIControlLights : MonoBehaviour
     {
         if (index >= lights.Length) return;
 
-        if(index > 0)
-            SetFinished(index-1);
+        //if(index > 0)
+        //    SetFinished(index-1);
 
         SetCurrent(index);
     }
@@ -47,11 +50,13 @@ public class UIControlLights : MonoBehaviour
     {
         lights[index].SetActive(true);
         lights[index].GetComponent<Image>().color = current.color;
+        currentIndex = index;
     }
 
-    public void SetFinished(int index)
+    public void SetFinished()
     {
-        lights[index].GetComponent<Image>().color = finished.color;
+        
+        lights[currentIndex].GetComponent<Image>().color = finished.color;
     }
 
 
