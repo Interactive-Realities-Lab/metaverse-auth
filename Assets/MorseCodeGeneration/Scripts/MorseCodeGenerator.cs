@@ -44,6 +44,7 @@ public class MorseCodeGenerator : MonoBehaviour
     [System.Serializable] public class MyIntEvent : UnityEvent<int> { }
     public MyIntEvent OnOTPSegment;
 
+    public UnityEvent OnOTPDelaySegment;
     public float ActionDelay { get => actionDelay; set => actionDelay = value; }
 
     private void OnEnable()
@@ -114,6 +115,7 @@ public class MorseCodeGenerator : MonoBehaviour
 
     private void keyDown(InputAction.CallbackContext context)
     {
+        if (actionDelay > 0) return;
         keyIsPressed = true;
         timePressed = 0;
         longPressHapticRemaining = true;
@@ -123,6 +125,8 @@ public class MorseCodeGenerator : MonoBehaviour
 
     private void keyUp(InputAction.CallbackContext context)
     {
+        if (actionDelay > 0) return;
+
         keyIsPressed = false;
 
         if (lockCodeRequest) return;
@@ -169,6 +173,7 @@ public class MorseCodeGenerator : MonoBehaviour
 
             if (digitCounter < code[segmentCounter].Length && repeatCounter > 0)
             {
+
                 //A valid digit can be returned.  Trigger haptics, increment digit counter, add actionDelay
                 controller?.SendHapticImpulse(1.0f, code[segmentCounter][digitCounter]);
                 ActionDelay = code[segmentCounter][digitCounter] + digitSpacing;
@@ -191,6 +196,7 @@ public class MorseCodeGenerator : MonoBehaviour
                     repeatCounter--;
                     ActionDelay = repeatDelay;
                     digitCounter = 0;
+                    OnOTPDelaySegment?.Invoke();
                 }
             }
 
@@ -227,5 +233,10 @@ public class MorseCodeGenerator : MonoBehaviour
     public void LockCodeRepeat()
     {
         lockCodeRepeat = true;
+    }
+
+    public void ResetActionDelay()
+    {
+        ActionDelay = -1f;
     }
 }
