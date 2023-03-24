@@ -86,6 +86,8 @@ public class MorseControllerV2 : MonoBehaviour
                 return;
         }
 
+        if (CurrentSegment.Length > 3) return;
+
         if (!IsInputHeld)
         {
             IsInputHeld = true;
@@ -96,6 +98,12 @@ public class MorseControllerV2 : MonoBehaviour
     {
         if (LockMorseInput) return;
         if (!IsInputHeld) return;
+
+        if (CurrentSegment.Length > 3)
+        {
+            IsInputHeld = false;
+            return;
+        }
 
         //StopAllCoroutines();
         StopCoroutine("IncreaseValue");

@@ -14,6 +14,11 @@ public class UIMorseCodeDisplayer : MonoBehaviour
     [SerializeField] private MorseControllerV2 morseController;
 
 
+    private void OnEnable()
+    {
+        tmp.text = "";
+    }
+
     void Update()
     {
         if (morseController.CurrentSegment == "")
