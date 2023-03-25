@@ -60,6 +60,19 @@ public class MorseControllerV2 : MonoBehaviour
         inputDigit.action.canceled += OnRelease;
     }
 
+    private void Update()
+    {
+        InputAction.CallbackContext asd = new InputAction.CallbackContext();
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            OnPress(asd);
+        }
+        else if (Input.GetKeyUp(KeyCode.C))
+        {
+            OnRelease(asd);
+        }
+    }
+
     private void Reset()
     {
         segmentIndex = 0;
