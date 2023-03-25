@@ -9,7 +9,7 @@ public class UIUpdateVibrationDelayMessage : MonoBehaviour
     [SerializeField] private TMP_Text textfield;
     [SerializeField] private CanvasGroup canvasGroup;
     [SerializeField] string defaultText;
-    private bool allowDisplayDelay =false;
+    private bool allowDisplayDelay = false;
 
 
     private void OnEnable()
@@ -20,7 +20,7 @@ public class UIUpdateVibrationDelayMessage : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -49,7 +49,7 @@ public class UIUpdateVibrationDelayMessage : MonoBehaviour
     private void UpdateUI()
     {
         textfield.text = defaultText + " " + (int)morseCodeGenerator.ActionDelay;
-        
+
     }
 
     public void AllowDisplayDelay()

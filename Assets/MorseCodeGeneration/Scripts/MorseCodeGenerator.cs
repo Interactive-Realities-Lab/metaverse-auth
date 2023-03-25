@@ -47,11 +47,14 @@ public class MorseCodeGenerator : MonoBehaviour
     public UnityEvent OnOTPDelaySegment;
     public float ActionDelay { get => actionDelay; set => actionDelay = value; }
 
+    public float RepeatDelay => repeatDelay;
+
     private void OnEnable()
     {
         lockCodeRequest = false;
         lockCodeRepeat = false;
         isOTPinitialized = false;
+        ResetActionDelay();
     }
 
     private void Awake()
@@ -125,7 +128,7 @@ public class MorseCodeGenerator : MonoBehaviour
 
     private void keyUp(InputAction.CallbackContext context)
     {
-        if (actionDelay > 0) return;
+        //if (actionDelay > 0) return;
 
         keyIsPressed = false;
 
