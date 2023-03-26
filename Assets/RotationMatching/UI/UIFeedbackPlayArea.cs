@@ -14,7 +14,7 @@ public class UIFeedbackPlayArea : MonoBehaviour
 
     [SerializeField] private AnimationCurve fadeCurve;
 
-    [SerializeField] private Image background;
+    [SerializeField] private List<Image> background;
     [SerializeField] private TMP_Text text;
 
     private float desiredAlpha;
@@ -27,7 +27,8 @@ public class UIFeedbackPlayArea : MonoBehaviour
     public void Sampling()
     {
         if (!allowFade) return;
-        background.color = colorSampling;
+        foreach (var image in background)
+            image.color = colorSampling;
         text.text = "Establishing Parity ...";
         desiredAlpha = 1;
         currentAlpha = 0;
@@ -37,13 +38,15 @@ public class UIFeedbackPlayArea : MonoBehaviour
 
     public void NotMaching()
     {
-        background.color = colorNotMatching;
+        foreach (var image in background)
+            image.color = colorNotMatching;
         text.text = "Parity Lost.";
     }
 
     public void Mached()
     {
-        background.color = colorMatching;
+        foreach (var image in background)
+            image.color = colorMatching;
         text.text = "Parity Etablished";
         desiredAlpha = 0;
         currentAlpha = 1;

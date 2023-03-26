@@ -13,30 +13,34 @@ public class ControlUIFeedback : MonoBehaviour
     [SerializeField] private Color colorNotMatching;
     [SerializeField] private Color colorPaused;
 
-    [SerializeField] private Image background;
+    [SerializeField] private List<Image> background;
     [SerializeField] private TMP_Text text;
 
     public void Sampling()
     {
-        background.color = colorSampling;
+        foreach (var image in background)
+            image.color = colorSampling;
         text.text = "Establishing Parity ...";
     }
 
     public void NotMaching()
     {
-        background.color = colorNotMatching;
+        foreach (var image in background)
+            image.color = colorNotMatching;
         text.text = "Parity Lost.";
     }
 
     public void Mached()
     {
-        background.color = colorMatching;
+        foreach (var image in background)
+            image.color = colorMatching;
         text.text = "Parity Established";
     }
 
     public void Paused()
     {
-        background.color = colorPaused;
+        foreach (var image in background)
+            image.color = colorPaused;
         text.text = "Move to Continue ...";
     }
 
