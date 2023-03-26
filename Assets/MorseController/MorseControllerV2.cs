@@ -58,6 +58,9 @@ public class MorseControllerV2 : MonoBehaviour
     {
         inputDigit.action.started += OnPress;
         inputDigit.action.canceled += OnRelease;
+
+        gameObject.SetActive(false);
+
     }
 
     private void Update()
