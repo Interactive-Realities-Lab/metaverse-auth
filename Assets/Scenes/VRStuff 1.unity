@@ -3241,7 +3241,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &228531398
 Animator:
-  serializedVersion: 5
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -3258,7 +3258,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &228531399
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10229,7 +10229,7 @@ MonoBehaviour:
   stateMachine: {fileID: 767451043}
 --- !u!95 &767451043
 Animator:
-  serializedVersion: 5
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -10246,7 +10246,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!4 &767451044
 Transform:
   m_ObjectHideFlags: 0
@@ -30749,6 +30749,7 @@ GameObject:
   - component: {fileID: 8293533729936726370}
   - component: {fileID: 8293533729936726376}
   - component: {fileID: 8293533729936726377}
+  - component: {fileID: 8293533729936726378}
   m_Layer: 5
   m_Name: UIController
   m_TagString: Untagged
@@ -30833,6 +30834,33 @@ MonoBehaviour:
   - {fileID: 1692041941}
   - {fileID: 2020002657}
   - {fileID: 855344163}
+--- !u!114 &8293533729936726378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8293533729936726373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4bfcbcf52fcf5f47953a957d0129064, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnJumpToContinuousAuth:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 8293533729936726377}
+        m_TargetAssemblyTypeName: UIOTPHandler, Assembly-CSharp
+        m_MethodName: EnableSpecificPanel
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 3
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &9108292829394508247
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -22,6 +22,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "ButtonPress",
+                    "type": "Button",
+                    "id": "8e0a3c3f-3889-48bc-a8ba-28ab4c74aae0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -44,6 +53,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f932bdbc-d54f-499b-a0f7-0a0aa637175d",
+                    "path": "<XRViveTracker>{Waist}/isTracked",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ButtonPress",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

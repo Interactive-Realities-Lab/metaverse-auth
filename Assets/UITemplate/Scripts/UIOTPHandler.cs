@@ -39,6 +39,12 @@ public class UIOTPHandler : MonoBehaviour
         EnablePanel(++currentEnabled);
     }
 
+    public void EnableSpecificPanel(int index)
+    {
+        DisableAllPanels();
+        EnablePanel(index);
+    }
+
     void Start()
     {
 
