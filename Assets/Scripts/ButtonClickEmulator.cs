@@ -20,20 +20,20 @@ public class ButtonClickEmulator : MonoBehaviour
     }
 }
 
-[CustomEditor(typeof(ButtonClickEmulator))]
-public class Asd : Editor
-{
+//[CustomEditor(typeof(ButtonClickEmulator))]
+//public class Asd : Editor
+//{
     
-    public override void OnInspectorGUI()
-    {
+//    public override void OnInspectorGUI()
+//    {
 
 
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Send Click Event"))
-       {
-            ((ButtonClickEmulator)target).ClickButton();
+//        GUILayout.BeginHorizontal();
+//        if (GUILayout.Button("Send Click Event"))
+//       {
+//            ((ButtonClickEmulator)target).ClickButton();
 
-        }
-        GUILayout.EndHorizontal();
-    }
-}
+//        }
+//        GUILayout.EndHorizontal();
+//    }
+//}

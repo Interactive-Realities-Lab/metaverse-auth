@@ -90,7 +90,7 @@ public class MorseInput : MonoBehaviour
 
     public void ResetSegment()
     {
-        output = StringExtension.RemoveLastWord(output);
+        //output = StringExtension.RemoveLastWord(output);
     }
 
 
@@ -211,70 +211,70 @@ public class MorseInput : MonoBehaviour
 }
 
 //[CustomEditor(typeof(MorseInput))]
-public class MorseInputEditor : Editor
-{
-    private bool inputToggled = false;
+//public class MorseInputEditor : Editor
+//{
+//    private bool inputToggled = false;
 
-    public override void OnInspectorGUI()
-    {
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Exponential Speed");
-        ((MorseInput)target).exponentialSpeed = EditorGUILayout.FloatField(((MorseInput)target).exponentialSpeed);
-        GUILayout.EndHorizontal();
-
-
-
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Linear Speed");
-        ((MorseInput)target).linearSpeed = EditorGUILayout.FloatField(((MorseInput)target).linearSpeed);
-        GUILayout.EndHorizontal();
+//    public override void OnInspectorGUI()
+//    {
+//        GUILayout.BeginHorizontal();
+//        GUILayout.Label("Exponential Speed");
+//        ((MorseInput)target).exponentialSpeed = EditorGUILayout.FloatField(((MorseInput)target).exponentialSpeed);
+//        GUILayout.EndHorizontal();
 
 
 
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Simulate Input"))
-        {
-            if (inputToggled)
-            {
-                ((MorseInput)target).OnInputReleased();
-                inputToggled = false;
-            }
-            else
-            {
-                ((MorseInput)target).OnInputPressed();
-                inputToggled = true;
-            }
-
-        }
-        GUILayout.EndHorizontal();
+//        GUILayout.BeginHorizontal();
+//        GUILayout.Label("Linear Speed");
+//        ((MorseInput)target).linearSpeed = EditorGUILayout.FloatField(((MorseInput)target).linearSpeed);
+//        GUILayout.EndHorizontal();
 
 
 
-        GUILayout.BeginHorizontal();
-        GUILayout.TextArea(((MorseInput)target).Output);
-        GUILayout.EndHorizontal();
+//        GUILayout.BeginHorizontal();
+//        if (GUILayout.Button("Simulate Input"))
+//        {
+//            if (inputToggled)
+//            {
+//                ((MorseInput)target).OnInputReleased();
+//                inputToggled = false;
+//            }
+//            else
+//            {
+//                ((MorseInput)target).OnInputPressed();
+//                inputToggled = true;
+//            }
 
-    }
-}
+//        }
+//        GUILayout.EndHorizontal();
 
 
-public static class StringExtension
-{
-    public static string RemoveLastWord(string s)
-    {
-        // remove the space from the start
-        // and at the end of the string
-        s = s.Trim();
 
-        string newStr = "";
-        if (s.Contains(" "))
-        {
-            newStr = s.Substring(0, s.LastIndexOf(' ')).TrimEnd();
-            return newStr;
-        }
-        else
-        {
-            return "";
-        }
-    }
-}
+//        GUILayout.BeginHorizontal();
+//        GUILayout.TextArea(((MorseInput)target).Output);
+//        GUILayout.EndHorizontal();
+
+//    }
+//}
+
+
+//public static class StringExtension
+//{
+//    public static string RemoveLastWord(string s)
+//    {
+//        // remove the space from the start
+//        // and at the end of the string
+//        s = s.Trim();
+
+//        string newStr = "";
+//        if (s.Contains(" "))
+//        {
+//            newStr = s.Substring(0, s.LastIndexOf(' ')).TrimEnd();
+//            return newStr;
+//        }
+//        else
+//        {
+//            return "";
+//        }
+//    }
+//}

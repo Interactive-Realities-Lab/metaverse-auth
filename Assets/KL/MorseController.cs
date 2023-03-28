@@ -252,48 +252,48 @@ public class MorseController : MonoBehaviour
 
 
 //[CustomEditor(typeof(MorseController))]
-public class newMorseInputEditor : Editor
-{
-    private bool inputToggled = false;
+//public class newMorseInputEditor : Editor
+//{
+//    private bool inputToggled = false;
 
-    public override void OnInspectorGUI()
-    {
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Exponential Speed");
-        ((MorseController)target).exponentialSpeed = EditorGUILayout.FloatField(((MorseController)target).exponentialSpeed);
-        GUILayout.EndHorizontal();
-
-
-
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Linear Speed");
-        ((MorseController)target).linearSpeed = EditorGUILayout.FloatField(((MorseController)target).linearSpeed);
-        GUILayout.EndHorizontal();
+//    public override void OnInspectorGUI()
+//    {
+//        GUILayout.BeginHorizontal();
+//        GUILayout.Label("Exponential Speed");
+//        ((MorseController)target).exponentialSpeed = EditorGUILayout.FloatField(((MorseController)target).exponentialSpeed);
+//        GUILayout.EndHorizontal();
 
 
 
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Simulate Input"))
-        {
-            if (inputToggled)
-            {
-                ((MorseController)target).OnInputReleased();
-                inputToggled = false;
-            }
-            else
-            {
-                ((MorseController)target).OnInputPressed();
-                inputToggled = true;
-            }
-
-        }
-        GUILayout.EndHorizontal();
+//        GUILayout.BeginHorizontal();
+//        GUILayout.Label("Linear Speed");
+//        ((MorseController)target).linearSpeed = EditorGUILayout.FloatField(((MorseController)target).linearSpeed);
+//        GUILayout.EndHorizontal();
 
 
 
-        GUILayout.BeginHorizontal();
-        GUILayout.TextArea(((MorseController)target).Output);
-        GUILayout.EndHorizontal();
+//        GUILayout.BeginHorizontal();
+//        if (GUILayout.Button("Simulate Input"))
+//        {
+//            if (inputToggled)
+//            {
+//                ((MorseController)target).OnInputReleased();
+//                inputToggled = false;
+//            }
+//            else
+//            {
+//                ((MorseController)target).OnInputPressed();
+//                inputToggled = true;
+//            }
 
-    }
-}
+//        }
+//        GUILayout.EndHorizontal();
+
+
+
+//        GUILayout.BeginHorizontal();
+//        GUILayout.TextArea(((MorseController)target).Output);
+//        GUILayout.EndHorizontal();
+
+//    }
+//}
