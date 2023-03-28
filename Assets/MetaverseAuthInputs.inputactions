@@ -108,6 +108,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "InputDisconnect",
+                    "type": "Button",
+                    "id": "e519a35e-0079-4714-8781-76f23076aa06",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -130,6 +139,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SendCode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b9b9a6f8-6ad4-4474-9813-801cfd5b1f41",
+                    "path": "<ValveIndexController>/primaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "InputDisconnect",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -4,7 +4,7 @@ public class MatchingAngles : MonoBehaviour
 {
     [SerializeField] private Animator stateMachine;
 
-    [SerializeField] private GameObject object1, object2;
+    [SerializeField] private GameObject object1, object2, objectFallback;
 
     //The current rotation difference between object1 and object2
     private float currentDistance = 0f;
@@ -42,12 +42,19 @@ public class MatchingAngles : MonoBehaviour
     [Range(0f, 10f)]
     [SerializeField] private float progressSpeed;
 
+    private Transform currentTracker;
+
     void Update()
     {
-        if(isDisconnected) return;
-        
+        if (isDisconnected) return;
+
+        //UGLY remove this after demo
+
+
+        currentTracker = (object2.transform.rotation == Quaternion.identity) ? objectFallback.transform : object2.transform;
+
         var obj1matrix = Matrix4x4.Rotate(object1.transform.rotation);
-        var obj2matrix = Matrix4x4.Rotate(object2.transform.rotation);
+        var obj2matrix = Matrix4x4.Rotate(currentTracker.transform.rotation);
         currentDistance = Utils.DistMatrices(obj1matrix, obj2matrix);
 
         //currentDistance = Mathf.Abs(Quaternion.Dot(object1.transform.rotation, object2.transform.rotation));
@@ -81,10 +88,10 @@ public class MatchingAngles : MonoBehaviour
             // Start sampling if rotartions are starting to match
             if (absdiffCurrPrev < threashold)
                 currentMatchPeriod = Mathf.Min(maxMatchSamples, currentMatchPeriod += Time.deltaTime * progressSpeed);
-           
+
             // Lost matching... reset sampling
             else
-                currentMatchPeriod = Mathf.Max(0, currentMatchPeriod -= Time.deltaTime * progressSpeed);
+                currentMatchPeriod = Mathf.Max(0, currentMatchPeriod -= Time.deltaTime * progressSpeed * 2f);
 
 
 
@@ -95,7 +102,7 @@ public class MatchingAngles : MonoBehaviour
             currentRotSampling++;
             return;
         }
-        
+
 
 
         // Once sampling is done and rotations are matched
@@ -105,7 +112,7 @@ public class MatchingAngles : MonoBehaviour
 
         if (currentAbsdiff > threashold)
         {
-            currentMatchPeriod = Mathf.Max(0, currentMatchPeriod -= Time.deltaTime * progressSpeed);
+            currentMatchPeriod = Mathf.Max(0, currentMatchPeriod -= Time.deltaTime * progressSpeed * 2f);
             matched = false;
             if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Sampling"))
                 stateMachine.SetTrigger("GotoSampling");

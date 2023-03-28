@@ -18,6 +18,8 @@ public class CheckHeadMovements : MonoBehaviour
 
     private bool isEnabled = false;
 
+    private bool allowPauseSampling = false;
+
     [SerializeField] public bool IsRotating { get; private set; }
 
 
@@ -39,7 +41,7 @@ public class CheckHeadMovements : MonoBehaviour
 
         if (rotIntensityNormalized <= 0f)
         {
-            if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Paused"))
+            if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Paused") && allowPauseSampling)
                 stateMachine.SetTrigger("GotoPaused");
         }
         else
@@ -116,6 +118,9 @@ public class CheckHeadMovements : MonoBehaviour
         return Mathf.Clamp((intervalShakeIntensity - minForNormalization) / (maxForNormalization - minForNormalization), 0, 1);
     }
 
-
+    public void TooglePauseSampling(bool value)
+    {
+        allowPauseSampling = value;
+    }
 
 }

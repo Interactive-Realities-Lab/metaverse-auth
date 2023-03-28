@@ -47,7 +47,7 @@ public class UIFeedbackPlayArea : MonoBehaviour
     {
         foreach (var image in background)
             image.color = colorMatching;
-        text.text = "Parity Etablished";
+        text.text = "Parity Established";
         desiredAlpha = 0;
         currentAlpha = 1;
 
