@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   userImage: {fileID: 21300000, guid: b6a74c581130be241a9e77586f535089, type: 3}
   userName: Carnalusti Marntizl
-  hasConnected: 1
+  hasConnected: 0

@@ -10027,6 +10027,7 @@ GameObject:
   - component: {fileID: 767451046}
   - component: {fileID: 767451045}
   - component: {fileID: 767451047}
+  - component: {fileID: 767451048}
   m_Layer: 0
   m_Name: ConnectionHandler
   m_TagString: Untagged
@@ -10288,6 +10289,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fce71ef17b9789e4e9ddc3f59b53a8b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &767451048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 767451041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7513d230a705afc43949794fbf55e0c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usersContainers:
+  - {fileID: 11400000, guid: a16c54c2fdade414db1afe9dd287c14a, type: 2}
+  - {fileID: 11400000, guid: d2d93decf702c49478e70262e3566d89, type: 2}
+  - {fileID: 11400000, guid: 7156eba625c3bbc4389eed95060fae1a, type: 2}
 --- !u!1 &772262347 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3673280251517457714, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -29741,7 +29758,7 @@ MonoBehaviour:
   m_Camera: {fileID: 297165332}
   m_RotateWithCamera: 1
   m_FollowSpeed: 1
-  setDistance: 1.5
+  setDistance: 1.2
 --- !u!114 &8293533729936726377
 MonoBehaviour:
   m_ObjectHideFlags: 0
