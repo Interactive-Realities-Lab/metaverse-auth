@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine.Scripting;
 using UnityEngine.XR.OpenXR.Input;
 using UnityEngine.InputSystem.Layouts;
@@ -7,7 +7,9 @@ using UnityEngine.InputSystem.XR;
 using UnityEngine.InputSystem;
 using System.Runtime.InteropServices;
 using System;
- 
+using UnityEngine.XR.OpenXR.Features;
+using static UnityEngine.XR.OpenXR.Features.OpenXRInteractionFeature;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -213,13 +215,15 @@ namespace UnityEngine.XR.OpenXR.Features.Interactions
         protected override void RegisterDeviceLayout()
         {
             InputSystem.InputSystem.RegisterLayout<XRTracker>();
- 
+
             InputSystem.InputSystem.RegisterLayout(typeof(XRViveTracker),
-                        matches: new InputDeviceMatcher()
-                        .WithInterface(XRUtilities.InterfaceMatchAnyVersion)
-                        .WithProduct(kDeviceLocalizedName));
+               matches: new InputDeviceMatcher()
+                  .WithInterface(XRUtilities.InterfaceMatchAnyVersion)
+                  .WithProduct(kDeviceLocalizedName)
+                  .WithCapability("interactionProfile", profile));  // 👈 add this
+
         }
- 
+
         /// <summary>
         /// Removes the <see cref="ViveTracker"/> layout from the Input System.
         /// </summary>
@@ -364,7 +368,16 @@ namespace UnityEngine.XR.OpenXR.Features.Interactions
  
             return res;
         }
+        protected override string GetDeviceLayoutName()
+        {
+            return nameof(XRViveTracker);
+        }
+
+        protected override OpenXRInteractionFeature.InteractionProfileType GetInteractionProfileType()
+        {
+            return OpenXRInteractionFeature.InteractionProfileType.Device;
+        }
+
     }
- 
- 
+
 }
