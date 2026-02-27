@@ -43,6 +43,7 @@ public class FingerprintWsClient : MonoBehaviour
 
     public event Action<string> OnImuRawMessage;             // optional
     public event Action<float, float, float> OnImuYpr;       // pitch, roll, yaw
+    public event Action<float, float, float> OnImuGyro;
 
     [Serializable]
     public class ImuJson { public float pitch; public float roll; public float yaw; }
@@ -319,6 +320,19 @@ public class FingerprintWsClient : MonoBehaviour
                 return;
             }
 
+            // A0) Tagged CSV: GYRO:gx,gy,gz   (recommended)
+            if (trimmed.StartsWith("GYRO:", StringComparison.OrdinalIgnoreCase))
+            {
+                string csv = trimmed.Substring(5).Trim();
+                OnImuRawMessage?.Invoke(trimmed);
+
+                if (TryParseCsv3(csv, out var gx, out var gy, out var gz))
+                {
+                    OnImuGyro?.Invoke(gx, gy, gz);
+                    return;
+                }
+            }
+
             // A) Tagged CSV: IMU:1.23,4.56,7.89
             if (trimmed.StartsWith("IMU:", StringComparison.OrdinalIgnoreCase))
             {
@@ -453,6 +467,17 @@ public class FingerprintWsClient : MonoBehaviour
         return float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out pitch) &&
                float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out roll) &&
                float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out yaw);
+    }
+
+    static bool TryParseCsv3(string csv, out float a, out float b, out float c)
+    {
+        a = b = c = 0f;
+        var parts = csv.Split(',');
+        if (parts.Length != 3) return false;
+
+        return float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out a) &&
+               float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out b) &&
+               float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out c);
     }
 
     static bool LooksLikePlainCsvYpr(string s)

@@ -7,6 +7,8 @@ public class UIPanelActions : MonoBehaviour
     public GameObject userLoginPanel;
     public GameObject logRegPanel;
     public GameObject motionPanel;
+   // public GameObject rotationMatchingRoot;
+    //public GameObject rotationMatchingUI;    
 
 
     public void ShowMotion()
@@ -14,6 +16,8 @@ public class UIPanelActions : MonoBehaviour
         if (userLoginPanel) userLoginPanel.SetActive(false);
         if (logRegPanel) logRegPanel.SetActive(false);
         if (motionPanel) motionPanel.SetActive(true);
+        //if (rotationMatchingRoot) rotationMatchingRoot.SetActive(true);
+        //if (rotationMatchingUI) rotationMatchingUI.SetActive(true);
     }
 
     public void ShowLogin()
