@@ -23,14 +23,14 @@ public class ControlUIFeedback : MonoBehaviour
         text.text = "Establishing Parity ...";
     }
 
-    public void NotMaching()
+    public void NotMatching()
     {
         foreach (var image in background)
             image.color = colorNotMatching;
         text.text = "Parity Lost.";
     }
 
-    public void Mached()
+    public void Matched()
     {
         foreach (var image in background)
             image.color = colorMatching;
