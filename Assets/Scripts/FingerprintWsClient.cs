@@ -176,7 +176,7 @@ public class FingerprintWsClient : MonoBehaviour
         wsImu.OnMessage += (bytes) =>
         {
             var msg = Encoding.UTF8.GetString(bytes).Trim();
-            Debug.Log("[IMU <=] " + msg);
+            //Debug.Log("[IMU <=] " + msg);
 
             if (msg.StartsWith("ACK:", StringComparison.OrdinalIgnoreCase) ||
                 msg.StartsWith("ERR:", StringComparison.OrdinalIgnoreCase) ||
@@ -303,7 +303,7 @@ public class FingerprintWsClient : MonoBehaviour
         var raw = Encoding.UTF8.GetString(bytes);
         
         var trimmed = raw.Trim();
-        Debug.Log("[RAW WS] " + trimmed);
+        //Debug.Log("[RAW WS] " + trimmed);
         var lower = trimmed.ToLowerInvariant();
 
         // ----- IMU parsing (over SAME WS) -----

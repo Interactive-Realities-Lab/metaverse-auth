@@ -9,26 +9,16 @@ public class HandleConnectionState : MonoBehaviour
 {
     [SerializeField] private Animator stateMachine;
     public InputActionReference inputDisconnect = null;
-
     public bool IsInputHeld { get; private set; } = false;
-
     public float HeldValue { get; private set; }
 
-
-
     [SerializeField] public float HeldThreasholdValue { get; private set; } = 4f;
-
-
 
     private void Awake()
     {
         inputDisconnect.action.started += OnPress;
         inputDisconnect.action.canceled += OnRelease;
-
-
     }
-
-
 
     private void OnPress(InputAction.CallbackContext obj)
     {
@@ -87,6 +77,4 @@ public class HandleConnectionState : MonoBehaviour
         if (!stateMachine.GetCurrentAnimatorStateInfo(0).IsName("Disconnected"))
             stateMachine.SetTrigger("GotoDisconnected");
     }
-
-
 }

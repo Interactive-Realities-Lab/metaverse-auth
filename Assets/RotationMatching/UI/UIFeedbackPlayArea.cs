@@ -1,5 +1,4 @@
 using IRLab.Tools.Timer;
-using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -16,43 +15,73 @@ public class UIFeedbackPlayArea : MonoBehaviour
 
     [SerializeField] private List<Image> background;
     [SerializeField] private TMP_Text text;
+    [SerializeField] private Image fillImage1;
+    [SerializeField] private Image fillImage2;
+    //[SerializeField] private ProgressBar fillProgressBar;
 
     private float desiredAlpha;
     private float currentAlpha;
-
     private bool allowFade;
-
-
 
     public void Sampling()
     {
-        if (!allowFade) return;
+        Debug.Log("Tiny UIFeedbackPlayArea.Sampling called");
+
         foreach (var image in background)
             image.color = colorSampling;
-        text.text = "Establishing Parity ...";
-        desiredAlpha = 1;
-        currentAlpha = 0;
 
-        allowFade = true;
+        text.text = "Establishing Parity...";
+        currentAlpha = 1f;
+        desiredAlpha = 1f;
+        canvas.alpha = 1f;
+        allowFade = false;
     }
 
-    public void NotMaching()
+    public void NotMatching()
     {
+        /*if (fillProgressBar != null)
+            fillProgressBar.StopUpdateProgressBar();*/
+
         foreach (var image in background)
             image.color = colorNotMatching;
+
+        if (fillImage1 != null)
+        {
+            fillImage1.fillAmount = 1f;
+            fillImage1.color = colorNotMatching;
+        }
+
+        if (fillImage2 != null)
+        {
+            fillImage2.fillAmount = 1f;
+            fillImage2.color = colorNotMatching;
+        }
+
         text.text = "Parity Lost.";
+        currentAlpha = 1f;
+        desiredAlpha = 1f;
+        canvas.alpha = 1f;
+        allowFade = false;
     }
 
-    public void Mached()
+    public void Matched()
     {
+        Debug.Log("Tiny UIFeedbackPlayArea.Matched called");
+
         foreach (var image in background)
             image.color = colorMatching;
-        text.text = "Parity Established";
-        desiredAlpha = 0;
-        currentAlpha = 1;
 
-        Timer.Create(() => allowFade = true, 2f);
-        
+        text.text = "Parity Established";
+        currentAlpha = 1f;
+        desiredAlpha = 1f;
+        canvas.alpha = 1f;
+        allowFade = false;
+
+        Timer.Create(() =>
+        {
+            desiredAlpha = 0f;
+            //allowFade = true;
+        }, 2f);
     }
 
     void Update()
@@ -60,10 +89,6 @@ public class UIFeedbackPlayArea : MonoBehaviour
         if (!allowFade) return;
 
         currentAlpha = Mathf.MoveTowards(currentAlpha, desiredAlpha, Time.deltaTime);
-
-
-
         canvas.alpha = fadeCurve.Evaluate(currentAlpha);
     }
-
 }

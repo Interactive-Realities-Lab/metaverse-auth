@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR;
+using IRLab.EventSystem.Event;
 
 public class HeadsetMotion : MonoBehaviour
 {
@@ -57,6 +58,24 @@ public class HeadsetMotion : MonoBehaviour
 
     [Header("Parity Lost Timeout")]
     public float parityLostTimeoutSeconds = 5f;
+    public TMP_Text timeoutText;
+
+    [Header("UI Panel Actions")]
+    public UIPanelActions uiPanelActions;
+
+    [Header("State Event Channels")]
+    public VoidEventChannelSO onSamplingEnter;
+    public VoidEventChannelSO onMatchedEnter;
+    public VoidEventChannelSO onNotMatchingEnter;
+    public VoidEventChannelSO onSamplingPausedEnter;
+
+    public VoidEventChannelSO onSamplingExit;
+    public VoidEventChannelSO onMatchedExit;
+    public VoidEventChannelSO onNotMatchingExit;
+    public VoidEventChannelSO onSamplingPausedExit;
+
+    [Header("CSV Logger")]
+    public HeadsetMotionCsvLogger csvLogger;
 
     private float _parityLostTimer = 0f;
     private bool _parityLostCountdownRunning = false;
@@ -110,28 +129,6 @@ public class HeadsetMotion : MonoBehaviour
 
     [Tooltip("If score stays below this for N checks -> mismatch (logic lives elsewhere).")]
     public float gyroScoreWarnThreshold = 0.6f;
-
-    // ---------------- CSV LOGGING ----------------
-    [Header("CSV Logging")]
-    public bool enableCsvLogging = true;
-
-    [Tooltip("How often to write a row (seconds). 0.05=20Hz, 0.1=10Hz")]
-    public float logEverySeconds = 1f;
-
-    [Tooltip("Label for the IMU placement (e.g., 'TopFront', 'LeftStrap', 'BackCenter').")]
-    public string imuPlacementLabel = "TopFront";
-
-    [Tooltip("Optional: participant/session id.")]
-    public string sessionId = "S01";
-
-    [Tooltip("Write file in persistentDataPath (recommended for Quest/PC).")]
-    public bool usePersistentDataPath = true;
-
-    StreamWriter _csv;
-    readonly StringBuilder _sb = new StringBuilder(512);
-    float _nextLogAt = 0f;
-    bool _isLogging = false;
-    string _csvPath = "";
 
     float _lastParityCos = 0f;
 
@@ -189,7 +186,8 @@ public class HeadsetMotion : MonoBehaviour
         stepDown = parityCheckEverySeconds * 0.5f;
 
         SetState(MotionState.Sampling, true);
-        //UpdateContinuousAuthUI();
+
+        Debug.Log("Animator assigned to: " + uiAnimator.name);
     }
 
     void OnEnable()
@@ -214,34 +212,57 @@ public class HeadsetMotion : MonoBehaviour
     {
         if (!force && _state == s) return;
 
+        MotionState previousState = _state;
+
+        if (!force)
+        {
+            switch (previousState)
+            {
+                case MotionState.Sampling:
+                    if (onSamplingExit != null) onSamplingExit.Broadcast();
+                    break;
+                case MotionState.Matched:
+                    if (onMatchedExit != null) onMatchedExit.Broadcast();
+                    break;
+                case MotionState.NotMatched:
+                    if (onNotMatchingExit != null) onNotMatchingExit.Broadcast();
+                    break;
+                case MotionState.Paused:
+                    if (onSamplingPausedExit != null) onSamplingPausedExit.Broadcast();
+                    break;
+            }
+        }
+
         _state = s;
+
+        Debug.Log($"Setting Animator State = {(int)_state}");
 
         if (uiAnimator != null)
             uiAnimator.SetInteger("State", (int)_state);
 
-        if (controlUIFeedback != null)
+        switch (_state)
         {
-            switch (_state)
-            {
-                case MotionState.Sampling:
-                    controlUIFeedback.Sampling();
-                    break;
+            case MotionState.Sampling:
+                if (controlUIFeedback != null) controlUIFeedback.Sampling();
+                if (onSamplingEnter != null) onSamplingEnter.Broadcast();
+                break;
 
-                case MotionState.Matched:
-                    controlUIFeedback.Matched();
-                    break;
+            case MotionState.Matched:
+                if (controlUIFeedback != null) controlUIFeedback.Matched();
+                if (onMatchedEnter != null) onMatchedEnter.Broadcast();
+                break;
 
-                case MotionState.NotMatched:
-                    controlUIFeedback.NotMatching();
-                    break;
+            case MotionState.NotMatched:
+                if (controlUIFeedback != null) controlUIFeedback.NotMatching();
+                if (onNotMatchingEnter != null) onNotMatchingEnter.Broadcast();
+                break;
 
-                case MotionState.Paused:
-                    controlUIFeedback.Paused();
-                    break;
-            }
+            case MotionState.Paused:
+                if (controlUIFeedback != null) controlUIFeedback.Paused();
+                if (onSamplingPausedEnter != null) onSamplingPausedEnter.Broadcast();
+                break;
         }
     }
-
 
     public float ParityProgress01()
     {
@@ -262,6 +283,31 @@ public class HeadsetMotion : MonoBehaviour
     public float LastParityCos()
     {
         return _lastParityCos;
+    }
+
+    public float ParityLostTimeRemaining()
+    {
+        return Mathf.Max(0f, parityLostTimeoutSeconds - _parityLostTimer);
+    }
+
+    void HandleParityLostTimeout()
+    {
+        Debug.Log("Parity lost timeout reached. Returning to login panel.");
+
+        // Stop trial / reset auth state
+        _trialRunning = false;
+        _parityLostCountdownRunning = false;
+        _parityLostTimer = 0f;
+
+        // Example 1: switch animator state
+        SetState(MotionState.Sampling);
+
+        // Example 2: call login UI panel here
+        // loginPanel.SetActive(true);
+        // continuousAuthPanel.SetActive(false);
+
+        // Example 3: if another script controls panels:
+        // uiManager.ShowLoginPanel();
     }
 
     void OnImuYpr(float pitch, float roll, float yaw)
@@ -285,9 +331,9 @@ public class HeadsetMotion : MonoBehaviour
         _espGyroBuf.Add(new Sample(t, _espGyro));
         TrimOld(_espGyroBuf, t - gyroWindowSeconds);
 
-#if UNITY_EDITOR
+/*#if UNITY_EDITOR
         Debug.Log($"ESP GYRO: gx={gx:F3}, gy={gy:F3}, gz={gz:F3}");
-#endif
+#endif*/
     }
 
     static Quaternion ImuYprToQuat(float pitch, float roll, float yaw)
@@ -331,26 +377,28 @@ public class HeadsetMotion : MonoBehaviour
         float imuRawRoll = _r;
         float imuRawYaw = _y;
 
-        // Your Quest mapping:
+        // -------- mapping ---------
         // QuestYaw   <- -IMU yaw
-        // QuestPitch <-  IMU pitch
-        // QuestRoll  <- -IMU roll
+        // QuestPitch <- -IMU roll
+        // QuestRoll  <- -IMU pitch
+
         string imuYawMappedStr = (_haveR ? (-imuRawRoll).ToString(ff) : "—");
         string imuPitchMappedStr = (_haveY ? (-imuRawYaw).ToString(ff) : "—");
-        string imuRollMappedStr = (_haveP ? (imuRawPitch).ToString(ff) : "—");
+        string imuRollMappedStr = (_haveP ? (-imuRawPitch).ToString(ff) : "—");
 
         if (rowImuText != null)
         {
             rowImuText.text =
-                $"IMU | Yaw: {imuPitchMappedStr}°  Pitch: {imuRollMappedStr}°  Roll: {imuYawMappedStr}°";
+                $"IMU | Yaw: {imuPitchMappedStr}°  Pitch: {imuYawMappedStr}°  Roll: {imuRollMappedStr}°";
         }
 
         // ----- Delta row -----
         if (rowDeltaText)
         {
-            float imuYawQ = -_y;
-            float imuPitchQ = _p;
-            float imuRollQ = -_r;
+            // Match EXACT same mapping as the IMU row being displayed
+            float imuYawQ = -_y; // same as UI Yaw
+            float imuPitchQ = -_r; // same as UI Pitch
+            float imuRollQ = -_p; // same as UI Roll
 
             float dy = haveQuest ? Mathf.DeltaAngle(imuYawQ, questYaw) : 0f;
             float dp = haveQuest ? Mathf.DeltaAngle(imuPitchQ, questPitch) : 0f;
@@ -416,14 +464,24 @@ public class HeadsetMotion : MonoBehaviour
                         {
                             _parityBuilt = true;
                             _parityEverBuilt = true;
+
+                            Debug.Log("HeadsetMotion: MATCHED");
+
+                            if (uiPanelActions != null)
+                                uiPanelActions.ShowRotationUI();
                         }
                         else if (_parityBuilt && _confidence <= loseThreshold)
                         {
                             _parityBuilt = false;
+
+                            Debug.Log("HeadsetMotion: LOST");
+
+                            if (uiPanelActions != null)
+                                uiPanelActions.ShowMotion();
                         }
                     }
 
-#if UNITY_EDITOR
+/*#if UNITY_EDITOR
                     if (Time.frameCount % 30 == 0)
                     {
                         Debug.Log(
@@ -431,7 +489,7 @@ public class HeadsetMotion : MonoBehaviour
                             $"di(IMU): P{di.x:F2} Y{di.y:F2} R{di.z:F2} | " +
                             $"updated:{imuUpdatedSinceLastCheck} eval:{evaluated} cos:{cosSim:F2} built:{_parityBuilt} conf:{_confidence:F2}");
                     }
-#endif
+#endif*/
 
                     if (parityText)
                     {
@@ -497,10 +555,8 @@ public class HeadsetMotion : MonoBehaviour
         }
 
         // ---------------- CSV row write ----------------
-        if (_isLogging && Time.time >= _nextLogAt)
+        if (csvLogger != null && csvLogger.ShouldWriteRow(Time.time))
         {
-            _nextLogAt = Time.time + Mathf.Max(0.01f, logEverySeconds);
-
             bool haveQuestNow = haveQuest;
             bool haveImuNow = _haveP && _haveR && _haveY;
 
@@ -514,38 +570,49 @@ public class HeadsetMotion : MonoBehaviour
                 float dp = Mathf.DeltaAngle(imuPitchQ, questPitch);
                 float dr = Mathf.DeltaAngle(imuRollQ, questRoll);
 
-                float parityCos = _lastParityCos;
-                string utc = DateTime.UtcNow.ToString("o");
-
-                _sb.Length = 0;
-                _sb.Append(utc).Append(',');
                 float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
-                _sb.Append(trialTime.ToString("F2")).Append(',');
-                _sb.Append(imuPlacementLabel).Append(',');
 
-                _sb.Append(questYaw.ToString("F2")).Append(',');
-                _sb.Append(questPitch.ToString("F2")).Append(',');
-                _sb.Append(questRoll.ToString("F2")).Append(',');
-
-                _sb.Append(_p.ToString("F2")).Append(',');
-                _sb.Append(_r.ToString("F2")).Append(',');
-                _sb.Append(_y.ToString("F2")).Append(',');
-
-                _sb.Append(imuPitchQ.ToString("F2")).Append(',');
-                _sb.Append(imuYawQ.ToString("F2")).Append(',');
-                _sb.Append(imuRollQ.ToString("F2")).Append(',');
-
-                _sb.Append(dy.ToString("F2")).Append(',');
-                _sb.Append(dp.ToString("F2")).Append(',');
-                _sb.Append(dr.ToString("F2")).Append(',');
-
-                _sb.Append(_parityBuilt ? "1" : "0").Append(',');
-                _sb.Append(parityCos.ToString("F2")).Append(',');
-
-                _csv.WriteLine(_sb.ToString());
-
-                if (Time.frameCount % 60 == 0) _csv.Flush();
+                csvLogger.WriteRow(
+                    trialTime,
+                    questYaw, questPitch, questRoll,
+                    _p, _r, _y,
+                    imuPitchQ, imuYawQ, imuRollQ,
+                    dy, dp, dr,
+                    _parityBuilt,
+                    _lastParityCos
+                );
             }
+        }
+
+        // -------- parity lost timeout logic --------
+        if (_parityEverBuilt && _state == MotionState.NotMatched)
+        {
+            if (!_parityLostCountdownRunning)
+            {
+                _parityLostCountdownRunning = true;
+                _parityLostTimer = 0f;
+            }
+
+            _parityLostTimer += Time.deltaTime;
+
+            if (_parityLostTimer >= parityLostTimeoutSeconds)
+            {
+                HandleParityLostTimeout();
+            }
+        }
+        else
+        {
+            _parityLostCountdownRunning = false;
+            _parityLostTimer = 0f;
+        }
+
+        // -------- timeout countdown text --------
+        if (timeoutText != null)
+        {
+            if (_parityEverBuilt && _state == MotionState.NotMatched)
+                timeoutText.text = $"Re-authenticate in {Mathf.Max(0f, parityLostTimeoutSeconds - _parityLostTimer):F1}s";
+            else
+                timeoutText.text = "";
         }
     }
 
@@ -577,15 +644,14 @@ public class HeadsetMotion : MonoBehaviour
         if (parityText) parityText.text = "PARITY | —";
 
         // start new CSV logging session
-        StopCsvLogging();
-        StartCsvLogging();
-
+        if (csvLogger != null)
+        {
+            csvLogger.StopCsvLogging();
+            csvLogger.StartCsvLogging();
+        }
         // Start trial timer
         _trialStartTime = Time.time;
-        _trialRunning = true;
-
-        SetState(MotionState.Sampling);
-        //UpdateContinuousAuthUI();
+        _trialRunning = true;  
 
         if (progressBar != null)
         {
@@ -594,6 +660,10 @@ public class HeadsetMotion : MonoBehaviour
         }
 
         SetState(MotionState.Sampling);
+
+        _parityLostTimer = 0f;
+        _parityLostCountdownRunning = false;
+        _parityEverBuilt = false;
     }
 
     public void PauseFSM()
@@ -733,59 +803,5 @@ public class HeadsetMotion : MonoBehaviour
         if (d >= 180f) d -= 360f;
         if (d < -180f) d += 360f;
         return d;
-    }
-
-    public void StartCsvLogging()
-    {
-        if (!enableCsvLogging) return;
-        if (_isLogging) return;
-
-        string dir = usePersistentDataPath ? Application.persistentDataPath : Application.dataPath;
-        Directory.CreateDirectory(dir);
-
-        string fileName = $"HeadsetIMU_{sessionId}_{imuPlacementLabel}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-        _csvPath = Path.Combine(dir, fileName);
-
-        _csv = new StreamWriter(_csvPath, false, Encoding.UTF8);
-
-        _csv.WriteLine(
-            "utc_iso,unity_time,imu_placement," +
-            "questYaw,questPitch,questRoll," +
-            "imuPitch,imuRoll,imuYaw," +
-            "imu_map_pitchQ,imu_map_yawQ,imu_map_rollQ," +
-            "deltaYaw,deltaPitch,deltaRoll," +
-            "parity_built,parity_cos"
-        );
-
-        _csv.Flush();
-        _nextLogAt = Time.time;
-        _isLogging = true;
-
-        Debug.Log($"CSV logging STARTED: {_csvPath}");
-    }
-
-    public void StopCsvLogging()
-    {
-        if (!_isLogging) return;
-
-        _isLogging = false;
-
-        try
-        {
-            _csv?.Flush();
-            _csv?.Close();
-            _csv = null;
-        }
-        catch
-        {
-            // ignore
-        }
-
-        Debug.Log($"CSV logging STOPPED: {_csvPath}");
-    }
-
-    void OnApplicationQuit()
-    {
-        StopCsvLogging();
     }
 }

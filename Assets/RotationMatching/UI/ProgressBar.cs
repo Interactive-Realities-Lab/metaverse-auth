@@ -1,95 +1,42 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class ProgressBar : MonoBehaviour
 {
-    [Header("Backend")]
     [SerializeField] private HeadsetMotion headsetMotion;
+    [SerializeField] private Image image;
+    [SerializeField] private AnimationCurve curvedProgress;
+    [SerializeField] private float smoothSpeed = 6f;
 
-    [Header("Split bar images")]
-    [SerializeField] private RectTransform leftFill;
-    [SerializeField] private RectTransform rightFill;
-
-    [Header("Optional full red warning overlay")]
-    [SerializeField] private GameObject redOverlay;
-
-    [Header("Optional shaping")]
-    [SerializeField] private AnimationCurve curvedProgress = AnimationCurve.Linear(0f, 0f, 1f, 1f);
-
-    [Header("Half widths at full progress")]
-    [SerializeField] private float leftMaxWidth = 180f;
-    [SerializeField] private float rightMaxWidth = 180f;
-
-    [Header("CosSim UI")]
-    [SerializeField] private TMP_Text cosSimText;
-
-    private bool updateProgressBar = false;
+    private bool updateProgressBar = true;
+    private float currentFill = 0f;   // <-- add it here
 
     void Update()
     {
         if (!updateProgressBar) return;
-        if (headsetMotion == null || leftFill == null || rightFill == null) return;
+        if (headsetMotion == null || image == null) return;
 
-        float raw = headsetMotion.ParityProgress01();
-        float t = curvedProgress != null ? curvedProgress.Evaluate(raw) : raw;
-        t = Mathf.Clamp01(t);
+        float target = curvedProgress.Evaluate(headsetMotion.ParityProgress01());
 
-        // Keep shrinking/growing normally
-        UpdateSplitBar(t);
+        currentFill = Mathf.Lerp(currentFill, target, Time.deltaTime * smoothSpeed);
 
-        // Show full red bar only when parity is lost
-        bool parityLost = headsetMotion.CurrentState() == HeadsetMotion.MotionState.NotMatched;
-
-        if (redOverlay != null)
-            redOverlay.SetActive(parityLost);
-
-        if (cosSimText != null)
-        {
-            cosSimText.text = $"CosSim: {headsetMotion.LastParityCos():F2}";
-        }
+        image.fillAmount = Mathf.Clamp01(currentFill);
     }
 
-    void UpdateSplitBar(float t)
+    public void ResetFillAmount()
     {
-        float leftWidth = leftMaxWidth * t;
-        float rightWidth = rightMaxWidth * t;
-
-        Vector2 leftSize = leftFill.sizeDelta;
-        leftSize.x = leftWidth;
-        leftFill.sizeDelta = leftSize;
-
-        Vector2 rightSize = rightFill.sizeDelta;
-        rightSize.x = rightWidth;
-        rightFill.sizeDelta = rightSize;
+        currentFill = 0f;
+        if (image != null)
+            image.fillAmount = 0f;
     }
 
     public void StartUpdateProgressBar()
     {
         updateProgressBar = true;
-
-        if (redOverlay != null)
-            redOverlay.SetActive(false);
     }
 
     public void StopUpdateProgressBar()
     {
         updateProgressBar = false;
-
-        if (redOverlay != null)
-            redOverlay.SetActive(false);
-    }
-
-    public void ResetFillAmount()
-    {
-        UpdateSplitBar(0f);
-
-        if (redOverlay != null)
-            redOverlay.SetActive(false);
-    }
-
-    public void FillComplete()
-    {
-        UpdateSplitBar(1f);
     }
 }
