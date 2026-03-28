@@ -35,6 +35,7 @@ public class HeadsetMotion : MonoBehaviour
     public float parityDeltaToleranceDeg = 4.5f;  // kept for tuning/reference
     public int parityBadChecksToLose = 3;         // kept for tuning/reference
     public float parityCosThreshold = 0.3f;
+    public float parityMinMotionDeg = 2.0f;
 
     bool _parityBuilt = false;
     float _nextParityCheckAt = 0f;
@@ -45,6 +46,12 @@ public class HeadsetMotion : MonoBehaviour
     bool _havePrevQuest = false, _havePrevImu = false;
     Vector3 _prevQuestPYR; // (pitch,yaw,roll)
     Vector3 _prevImuPYR;
+
+    bool _pendingMatchedUi = false;
+    float _pendingMatchedUiAt = 0f;
+
+    [Header("UI timing")]
+    public float matchedUiDelaySeconds = 0.2f;
 
     [Header("Parity hysteresis")]
     public float buildThreshold = 1.0f;
@@ -419,7 +426,7 @@ public class HeadsetMotion : MonoBehaviour
             if (haveQuestNow && haveImuNow)
             {
                 Vector3 questNow = new Vector3(questPitch, questYaw, questRoll);
-                Vector3 imuNow = new Vector3(_p, -_y, -_r);
+                Vector3 imuNow = new Vector3(-_r, -_y, -_p);
 
                 if (_havePrevQuest && _havePrevImu)
                 {
@@ -444,7 +451,8 @@ public class HeadsetMotion : MonoBehaviour
                         imuUpdatedSinceLastCheck &&
                         dq.sqrMagnitude >= 1e-6f &&
                         di.sqrMagnitude >= 1e-6f &&
-                        dq.magnitude >= 0.2f;
+                        dq.magnitude >= parityMinMotionDeg &&
+                        di.magnitude >= parityMinMotionDeg;
 
                     if (evaluated)
                     {
@@ -462,17 +470,19 @@ public class HeadsetMotion : MonoBehaviour
 
                         if (!_parityBuilt && _confidence >= buildThreshold)
                         {
+                            _confidence = buildThreshold; // make sure progress reports full
                             _parityBuilt = true;
                             _parityEverBuilt = true;
 
                             Debug.Log("HeadsetMotion: MATCHED");
 
-                            if (uiPanelActions != null)
-                                uiPanelActions.ShowRotationUI();
+                            _pendingMatchedUi = true;
+                            _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
                         }
                         else if (_parityBuilt && _confidence <= loseThreshold)
                         {
                             _parityBuilt = false;
+                            _pendingMatchedUi = false;
 
                             Debug.Log("HeadsetMotion: LOST");
 
@@ -481,15 +491,15 @@ public class HeadsetMotion : MonoBehaviour
                         }
                     }
 
-/*#if UNITY_EDITOR
-                    if (Time.frameCount % 30 == 0)
-                    {
-                        Debug.Log(
-                            $"dq(Q): P{dq.x:F2} Y{dq.y:F2} R{dq.z:F2} | " +
-                            $"di(IMU): P{di.x:F2} Y{di.y:F2} R{di.z:F2} | " +
-                            $"updated:{imuUpdatedSinceLastCheck} eval:{evaluated} cos:{cosSim:F2} built:{_parityBuilt} conf:{_confidence:F2}");
-                    }
-#endif*/
+                    /*#if UNITY_EDITOR
+                                        if (Time.frameCount % 30 == 0)
+                                        {
+                                            Debug.Log(
+                                                $"dq(Q): P{dq.x:F2} Y{dq.y:F2} R{dq.z:F2} | " +
+                                                $"di(IMU): P{di.x:F2} Y{di.y:F2} R{di.z:F2} | " +
+                                                $"updated:{imuUpdatedSinceLastCheck} eval:{evaluated} cos:{cosSim:F2} built:{_parityBuilt} conf:{_confidence:F2}");
+                                        }
+                    #endif*/
 
                     if (parityText)
                     {
@@ -501,12 +511,22 @@ public class HeadsetMotion : MonoBehaviour
                             parityText.text = $"PARITY | SAMPLING (cos:{cosSim:F2})";
                     }
 
-                    if (_parityBuilt)
-                        SetState(MotionState.Matched);
-                    else if (_parityEverBuilt && _confidence <= loseThreshold)
-                        SetState(MotionState.NotMatched);
-                    else
+                    if (_pendingMatchedUi)
+                    {
                         SetState(MotionState.Sampling);
+                    }
+                    else if (_parityBuilt)
+                    {
+                        SetState(MotionState.Matched);
+                    }
+                    else if (_parityEverBuilt && _confidence <= loseThreshold)
+                    {
+                        SetState(MotionState.NotMatched);
+                    }
+                    else
+                    {
+                        SetState(MotionState.Sampling);
+                    }
                 }
 
                 // ALWAYS update previous values
@@ -525,6 +545,16 @@ public class HeadsetMotion : MonoBehaviour
                 SetState(MotionState.Sampling);
                //UpdateContinuousAuthUI();
             }
+        }
+
+        if (_pendingMatchedUi && _parityBuilt && Time.time >= _pendingMatchedUiAt)
+        {
+            _pendingMatchedUi = false;
+
+            if (uiPanelActions != null)
+                uiPanelActions.ShowRotationUI();
+
+            SetState(MotionState.Matched);
         }
 
         // ---------------- QUEST gyro capture + score ----------------
@@ -563,8 +593,8 @@ public class HeadsetMotion : MonoBehaviour
             if (haveQuestNow && haveImuNow)
             {
                 float imuYawQ = -_y;
-                float imuPitchQ = _p;
-                float imuRollQ = -_r;
+                float imuPitchQ = -_r;
+                float imuRollQ = -_p;
 
                 float dy = Mathf.DeltaAngle(imuYawQ, questYaw);
                 float dp = Mathf.DeltaAngle(imuPitchQ, questPitch);
