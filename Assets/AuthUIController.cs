@@ -43,7 +43,7 @@ public class AuthUIController : MonoBehaviour
         okButton.onClick.AddListener(() => FingerprintWsClient.I?.PressA());
         if (okButtonLabel) okButtonLabel.text = "OK";
 
-        SetPanels(true, "");
+        SetPanels(true, "");      //games starts with LogReg panel
         EnsureWsSubscriptions();
     }
 

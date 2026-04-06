@@ -64,8 +64,10 @@ public class HeadsetMotion : MonoBehaviour
     public ProgressBar progressBar;
 
     [Header("Parity Lost Timeout")]
-    public float parityLostTimeoutSeconds = 5f;
+    public float parityLostTimeoutSeconds = 10f;
     public TMP_Text timeoutText;
+
+    bool _reauthRequired = false;
 
     [Header("UI Panel Actions")]
     public UIPanelActions uiPanelActions;
@@ -305,16 +307,15 @@ public class HeadsetMotion : MonoBehaviour
         _trialRunning = false;
         _parityLostCountdownRunning = false;
         _parityLostTimer = 0f;
+        _reauthRequired = false;
 
-        // Example 1: switch animator state
+        //switching animator state
         SetState(MotionState.Sampling);
 
-        // Example 2: call login UI panel here
-        // loginPanel.SetActive(true);
-        // continuousAuthPanel.SetActive(false);
+        // calling login UI panel here
+        if (uiPanelActions != null)
+            uiPanelActions.ShowLogin();
 
-        // Example 3: if another script controls panels:
-        // uiManager.ShowLoginPanel();
     }
 
     void OnImuYpr(float pitch, float roll, float yaw)
@@ -328,7 +329,7 @@ public class HeadsetMotion : MonoBehaviour
         _imuYprUpdated = true;
     }
 
-    // NEW: Called by FingerprintWsClient whenever it parses ESP gyro
+    //Called by FingerprintWsClient whenever it parses ESP gyro
     void OnImuGyro(float gx, float gy, float gz)
     {
         _espGyro = new Vector3(gx, gy, gz);
@@ -473,6 +474,7 @@ public class HeadsetMotion : MonoBehaviour
                             _confidence = buildThreshold; // make sure progress reports full
                             _parityBuilt = true;
                             _parityEverBuilt = true;
+                            _reauthRequired = false;   // stop re-auth timeout once parity is built again
 
                             Debug.Log("HeadsetMotion: MATCHED");
 
@@ -483,11 +485,12 @@ public class HeadsetMotion : MonoBehaviour
                         {
                             _parityBuilt = false;
                             _pendingMatchedUi = false;
+                            _reauthRequired = true;   // starting re-auth timeout behavior
 
                             Debug.Log("HeadsetMotion: LOST");
 
                             if (uiPanelActions != null)
-                                uiPanelActions.ShowMotion();
+                                uiPanelActions.ShowContinuousAuth();
                         }
                     }
 
@@ -543,7 +546,6 @@ public class HeadsetMotion : MonoBehaviour
                 _havePrevQuest = _havePrevImu = false;
 
                 SetState(MotionState.Sampling);
-               //UpdateContinuousAuthUI();
             }
         }
 
@@ -614,8 +616,8 @@ public class HeadsetMotion : MonoBehaviour
             }
         }
 
-        // -------- parity lost timeout logic --------
-        if (_parityEverBuilt && _state == MotionState.NotMatched)
+        // -------- parity re-establish timeout logic --------
+        if (_reauthRequired && !_parityBuilt)
         {
             if (!_parityLostCountdownRunning)
             {
@@ -635,11 +637,11 @@ public class HeadsetMotion : MonoBehaviour
             _parityLostCountdownRunning = false;
             _parityLostTimer = 0f;
         }
-
-        // -------- timeout countdown text --------
+     
+       // -------- timeout countdown text --------
         if (timeoutText != null)
         {
-            if (_parityEverBuilt && _state == MotionState.NotMatched)
+            if (_reauthRequired && !_parityBuilt)
                 timeoutText.text = $"Re-authenticate in {Mathf.Max(0f, parityLostTimeoutSeconds - _parityLostTimer):F1}s";
             else
                 timeoutText.text = "";
@@ -694,6 +696,7 @@ public class HeadsetMotion : MonoBehaviour
         _parityLostTimer = 0f;
         _parityLostCountdownRunning = false;
         _parityEverBuilt = false;
+        _reauthRequired = false;
     }
 
     public void PauseFSM()

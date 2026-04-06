@@ -178,13 +178,22 @@ public class FingerprintWsClient : MonoBehaviour
             var msg = Encoding.UTF8.GetString(bytes).Trim();
             //Debug.Log("[IMU <=] " + msg);
 
+            // forward ALL IMU text messages, including "verified"
+            OnImuRawMessage?.Invoke(msg);
+        };
+
+      /*  wsImu.OnMessage += (bytes) =>
+        {
+            var msg = Encoding.UTF8.GetString(bytes).Trim();
+            //Debug.Log("[IMU <=] " + msg);
+
             if (msg.StartsWith("ACK:", StringComparison.OrdinalIgnoreCase) ||
                 msg.StartsWith("ERR:", StringComparison.OrdinalIgnoreCase) ||
                 msg.Equals("PONG", StringComparison.OrdinalIgnoreCase))
             {
                 OnImuRawMessage?.Invoke(msg);
             }
-        };
+        };*/
 
         var _ = wsImu.Connect();
         float start = Time.unscaledTime;
