@@ -33,17 +33,23 @@ public class AuthUIController : MonoBehaviour
     {
         _flow = Flow.None;
 
+        if (registerButton == null || loginButton == null || okButton == null)
+        {
+            Debug.LogWarning("AuthUIController: Missing UI references in this scene. Skipping UI setup.");
+            return;
+        }
+
         registerButton.onClick.RemoveAllListeners();
         loginButton.onClick.RemoveAllListeners();
         registerButton.onClick.AddListener(OnPressRegister);
         loginButton.onClick.AddListener(OnPressLogin);
 
-        // default: OK sends Button-A (device prompt will say when to press)
         okButton.onClick.RemoveAllListeners();
         okButton.onClick.AddListener(() => FingerprintWsClient.I?.PressA());
-        if (okButtonLabel) okButtonLabel.text = "OK";
 
-        SetPanels(true, "");      //games starts with LogReg panel
+        if (okButtonLabel != null) okButtonLabel.text = "OK";
+
+        SetPanels(true, "");
         EnsureWsSubscriptions();
     }
 

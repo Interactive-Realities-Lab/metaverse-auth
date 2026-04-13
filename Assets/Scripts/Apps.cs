@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit;
 
 public class Apps : MonoBehaviour
@@ -10,7 +9,14 @@ public class Apps : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(sceneName))
         {
-            SceneManager.LoadScene(sceneName);
+            if (SceneFlow.Instance != null)
+            {
+                SceneFlow.Instance.OpenContentScene(sceneName);
+            }
+            else
+            {
+                Debug.LogError("SceneFlow.Instance is null.");
+            }
         }
         else
         {

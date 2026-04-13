@@ -49,7 +49,7 @@ public class VerifiedController : MonoBehaviour
         Debug.Log("Calling ShowMotion()");
         if (panelActions != null)
         {
-            panelActions.ShowContinuousAuth();
+            panelActions.ShowPairDeviceUI();
         }
         else
         {

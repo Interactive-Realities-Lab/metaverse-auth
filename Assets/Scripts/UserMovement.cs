@@ -1,19 +1,18 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-
 [RequireComponent(typeof(NavMeshAgent))]
 public class UserMovement : MonoBehaviour
 {
     public NavMeshAgent agent;
     public Transform player;
     public LayerMask whatIsGround, whatIsPlayer;
-    public float maxtimer = 5;
-    private float timer = 0;
+    public float maxtimer = 5f;
+    private float timer = 0f;
 
     public Vector3 walkPoint;
-    bool walkPointSet;
-    public float walkPointRange;
+    private bool walkPointSet;
+    public float walkPointRange = 10f;
 
     private void Awake()
     {
@@ -21,22 +20,33 @@ public class UserMovement : MonoBehaviour
         Patroling();
     }
 
+    private void Update()
+    {
+        Patroling();
+        timer += Time.deltaTime;
+    }
+
     private void Patroling()
     {
-        if (!walkPointSet) SearchWalkPoint();
+        if (!walkPointSet)
+            SearchWalkPoint();
+
         if (walkPointSet)
             agent.SetDestination(walkPoint);
 
         Vector3 distanceToWalkPoint = transform.position - walkPoint;
 
-        if(timer > maxtimer && walkPointSet)
+        if (timer > maxtimer && walkPointSet)
         {
-            timer = 0;
+            timer = 0f;
             walkPointSet = false;
         }
 
         if (distanceToWalkPoint.magnitude < 0.3f)
+        {
             walkPointSet = false;
+            timer = 0f;
+        }
     }
 
     private void SearchWalkPoint()
@@ -44,29 +54,28 @@ public class UserMovement : MonoBehaviour
         float randomZ = Random.Range(-walkPointRange, walkPointRange);
         float randomX = Random.Range(-walkPointRange, walkPointRange);
 
-        walkPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
+        Vector3 candidatePoint = new Vector3(
+            transform.position.x + randomX,
+            transform.position.y,
+            transform.position.z + randomZ
+        );
 
-        if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround))
+        if (Physics.Raycast(candidatePoint + Vector3.up * 2f, Vector3.down, out RaycastHit hit, 4f, whatIsGround))
         {
-
             NavMeshPath path = new NavMeshPath();
-            if (NavMesh.CalculatePath(transform.position, walkPoint, NavMesh.AllAreas, path))
+
+            bool hasPath = NavMesh.CalculatePath(transform.position, hit.point, NavMesh.AllAreas, path);
+
+            if (hasPath && path.status == NavMeshPathStatus.PathComplete)
             {
+                walkPoint = hit.point;
                 walkPointSet = true;
+                timer = 0f;
             }
             else
             {
                 walkPointSet = false;
             }
         }
-    }
-    
-
-    // Update is called once per frame
-    void Update()
-    {
-        Patroling();
-
-        timer += Time.deltaTime;
     }
 }

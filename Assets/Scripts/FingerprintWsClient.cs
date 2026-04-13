@@ -36,6 +36,30 @@ public class FingerprintWsClient : MonoBehaviour
     public bool autoConnectOnStart = true;
     public float connectTimeoutSec = 4f;
 
+    [Serializable]
+    public class VerifyLast
+    {
+        public int ts;
+        public string action;
+        public string name;
+        public int id;
+        public bool ok;
+        public string reason;
+    }
+
+    [Serializable]
+    public class VerifyStateResponse
+    {
+        public bool sensorReady;
+        public string op;
+        public bool busy;
+        public string user;
+        public int ms_left;
+        public bool cont;
+        public string cont_user;
+        public VerifyLast last;
+    }
+
     // ---------- Events ----------
     public event Action<string> OnDeviceMessage;             // raw device text (JSON or plain)
     public event Action<int, string> OnEnrollSample;         // parsed progress: (step 0..6, pretty text)
@@ -182,19 +206,7 @@ public class FingerprintWsClient : MonoBehaviour
             OnImuRawMessage?.Invoke(msg);
         };
 
-      /*  wsImu.OnMessage += (bytes) =>
-        {
-            var msg = Encoding.UTF8.GetString(bytes).Trim();
-            //Debug.Log("[IMU <=] " + msg);
-
-            if (msg.StartsWith("ACK:", StringComparison.OrdinalIgnoreCase) ||
-                msg.StartsWith("ERR:", StringComparison.OrdinalIgnoreCase) ||
-                msg.Equals("PONG", StringComparison.OrdinalIgnoreCase))
-            {
-                OnImuRawMessage?.Invoke(msg);
-            }
-        };*/
-
+     
         var _ = wsImu.Connect();
         float start = Time.unscaledTime;
         while (wsImu.State != WebSocketState.Open && Time.unscaledTime - start < connectTimeoutSec)
@@ -325,6 +337,7 @@ public class FingerprintWsClient : MonoBehaviour
             if (trimmed.StartsWith("ACK:", StringComparison.OrdinalIgnoreCase))
             {
                 Debug.Log("[ESP32 ACK] " + trimmed);
+
                 OnImuRawMessage?.Invoke(trimmed);   // IMU channel
                 return;
             }
@@ -401,6 +414,31 @@ public class FingerprintWsClient : MonoBehaviour
                     if (maybeUsers.type.Equals("USERS", StringComparison.OrdinalIgnoreCase))
                     {
                         OnUsersList?.Invoke(maybeUsers.users ?? new UserProfile[0]);
+
+                        // ===== VERIFY JSON PARSING =====
+                        if (trimmed.Length > 0 && trimmed[0] == '{' && trimmed.Contains("\"last\""))
+                        {
+                            try
+                            {
+                                var verifyRes = JsonUtility.FromJson<VerifyStateResponse>(trimmed);
+
+                                if (verifyRes != null &&
+                                    verifyRes.last != null &&
+                                    verifyRes.last.action == "verify" &&
+                                    verifyRes.last.ok)
+                                {
+                                    Debug.Log($"VERIFY OK -> user={verifyRes.last.name}, id={verifyRes.last.id}");
+
+                                    OnDeviceMessage?.Invoke($"VERIFY_OK:{verifyRes.last.name}:{verifyRes.last.id}");
+                                    return;
+                                }
+                            }
+                            catch
+                            {
+                                Debug.LogWarning("Failed to parse verify JSON");
+                            }
+                        }
+
                         OnDeviceMessage?.Invoke(trimmed);
                         return;
                     }

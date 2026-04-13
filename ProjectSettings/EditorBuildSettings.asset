@@ -5,22 +5,20 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/VRStuff 1.unity
-    guid: b5ad5ea3515bdb846b4bdef9c6f457bc
   - enabled: 1
-    path: Assets/Scenes/Authentication.unity
+    path: Assets/SCENES/Authentication.unity
     guid: 6385f8f7756863b43ad42a2d542a24b4
   - enabled: 1
-    path: Assets/Scenes/Lobby.unity
+    path: Assets/SCENES/Lobby.unity
     guid: 368347b973f9e0c48a5a80e3147fac52
   - enabled: 1
-    path: Assets/Scenes/HotelRoom.unity
+    path: Assets/SCENES/HotelRoom.unity
     guid: 4620a83834d0fda46acad05e6b6b7837
   - enabled: 1
-    path: Assets/Scenes/OfficeRoom.unity
+    path: Assets/SCENES/OfficeRoom.unity
     guid: 813286085b7a4ee418fed822d9e32594
   m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 1c93c2dd2bafa6b4796d7c43dfde8b1a, type: 2}
     Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: c08c6878124cc1d47af33d9cbf78bf80, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: b2b82c92e3bdd4c498b14d4efac8ae3a, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: a89e4c239e13d6d46a3476c220fe7a78, type: 2}

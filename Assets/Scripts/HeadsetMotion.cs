@@ -29,6 +29,8 @@ public class HeadsetMotion : MonoBehaviour
     [Header("Parity status UI (optional)")]
     public TMP_Text parityText; // add a TMP text in the UI if you want
 
+    [SerializeField] private UIOTPHandler otpHandler;
+
     [Header("Parity logic (angles)")]
     public float parityBuildSeconds = 1.0f;       // kept for tuning/reference
     public float parityCheckEverySeconds = 0.15f; // how often to evaluate
@@ -303,6 +305,7 @@ public class HeadsetMotion : MonoBehaviour
     {
         Debug.Log("Parity lost timeout reached. Returning to login panel.");
 
+
         // Stop trial / reset auth state
         _trialRunning = false;
         _parityLostCountdownRunning = false;
@@ -313,7 +316,9 @@ public class HeadsetMotion : MonoBehaviour
         SetState(MotionState.Sampling);
 
         // calling login UI panel here
-        if (uiPanelActions != null)
+        if (SceneFlow.Instance != null)
+            SceneFlow.Instance.OnAuthFailed();
+        else if (uiPanelActions != null)
             uiPanelActions.ShowLogin();
 
     }
@@ -455,8 +460,14 @@ public class HeadsetMotion : MonoBehaviour
                         dq.magnitude >= parityMinMotionDeg &&
                         di.magnitude >= parityMinMotionDeg;
 
+                    if (!evaluated)
+                    {
+                        Debug.Log("ParityCheck SKIPPED (no motion or no IMU update)");
+                    }
+
                     if (evaluated)
                     {
+                        Debug.Log($"ParityCheck running | conf={_confidence:F2} | built={_parityBuilt} | ever={_parityEverBuilt}");
                         cosSim = Vector3.Dot(dq.normalized, di.normalized);
                         good = cosSim >= parityCosThreshold;
 
@@ -478,6 +489,11 @@ public class HeadsetMotion : MonoBehaviour
 
                             Debug.Log("HeadsetMotion: MATCHED");
 
+                            if (SceneFlow.Instance != null)
+                                SceneFlow.Instance.RestoreLobbyUI();
+                            else if (uiPanelActions != null)
+                                uiPanelActions.HideContinuousAuthVisuals();
+
                             _pendingMatchedUi = true;
                             _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
                         }
@@ -489,7 +505,9 @@ public class HeadsetMotion : MonoBehaviour
 
                             Debug.Log("HeadsetMotion: LOST");
 
-                            if (uiPanelActions != null)
+                            if (SceneFlow.Instance != null)
+                                SceneFlow.Instance.ShowContinuousAuthUI();
+                            else if (uiPanelActions != null)
                                 uiPanelActions.ShowContinuousAuth();
                         }
                     }
@@ -514,11 +532,7 @@ public class HeadsetMotion : MonoBehaviour
                             parityText.text = $"PARITY | SAMPLING (cos:{cosSim:F2})";
                     }
 
-                    if (_pendingMatchedUi)
-                    {
-                        SetState(MotionState.Sampling);
-                    }
-                    else if (_parityBuilt)
+                    if (_parityBuilt)
                     {
                         SetState(MotionState.Matched);
                     }
@@ -555,6 +569,11 @@ public class HeadsetMotion : MonoBehaviour
 
             if (uiPanelActions != null)
                 uiPanelActions.ShowRotationUI();
+
+           /* if (otpHandler != null)
+            {
+                otpHandler.EnableSpecificPanel(2);
+            }*/
 
             SetState(MotionState.Matched);
         }
