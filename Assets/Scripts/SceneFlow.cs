@@ -30,6 +30,51 @@ public class SceneFlow : MonoBehaviour
         StartCoroutine(OpenContentSceneRoutine(sceneName));
     }
 
+    void MoveXrOriginToSpawnPointInScene(string sceneName)
+    {
+        Scene targetScene = SceneManager.GetSceneByName(sceneName);
+        if (!targetScene.IsValid() || !targetScene.isLoaded)
+        {
+            Debug.LogWarning("Target scene not loaded: " + sceneName);
+            return;
+        }
+
+        GameObject spawnPoint = null;
+
+        foreach (GameObject root in targetScene.GetRootGameObjects())
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == "XRSpawnPoint")
+                {
+                    spawnPoint = t.gameObject;
+                    break;
+                }
+            }
+
+            if (spawnPoint != null)
+                break;
+        }
+
+        if (spawnPoint == null)
+        {
+            Debug.LogWarning("XRSpawnPoint not found in scene: " + sceneName);
+            return;
+        }
+
+        GameObject xrOrigin = GameObject.Find("XR Origin");
+        if (xrOrigin == null)
+        {
+            Debug.LogWarning("XR Origin not found in Authentication scene.");
+            return;
+        }
+
+        xrOrigin.transform.position = spawnPoint.transform.position;
+        xrOrigin.transform.rotation = spawnPoint.transform.rotation;
+
+        Debug.Log("Moved XR Origin to XRSpawnPoint in scene: " + sceneName);
+    }
+
     IEnumerator OpenContentSceneRoutine(string sceneName)
     {
         DebugLoadedScenes("Before opening " + sceneName);
@@ -54,7 +99,10 @@ public class SceneFlow : MonoBehaviour
         }
 
         // Find Lobby UI root (IMPORTANT: set tag or name)
-        currentLobbyUIRoot = GameObject.FindWithTag("LobbyUI"); 
+        currentLobbyUIRoot = GameObject.FindWithTag("LobbyUI");
+
+        yield return null;
+        MoveXrOriginToSpawnPointInScene(sceneName);
 
         DebugLoadedScenes("After opening " + sceneName);
     }
