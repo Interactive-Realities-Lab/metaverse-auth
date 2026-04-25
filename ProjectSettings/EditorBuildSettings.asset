@@ -17,6 +17,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SCENES/OfficeRoom.unity
     guid: 813286085b7a4ee418fed822d9e32594
+  - enabled: 0
+    path: Assets/testScene.unity
+    guid: f61125dfcc8527a4aa8dc11b31599606
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 1c93c2dd2bafa6b4796d7c43dfde8b1a, type: 2}
     Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: c08c6878124cc1d47af33d9cbf78bf80, type: 2}

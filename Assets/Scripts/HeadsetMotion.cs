@@ -61,6 +61,9 @@ public class HeadsetMotion : MonoBehaviour
     public float stepUp = 0.15f;
     public float stepDown = 0.075f;
 
+    [Header("Auth Gate")]
+    [SerializeField] private bool authVerified = false;
+
     [Header("Continuous Auth UI")]
     public ControlUIFeedback controlUIFeedback;
     public ProgressBar progressBar;
@@ -421,6 +424,12 @@ public class HeadsetMotion : MonoBehaviour
                 $"Delta | Yaw: {dy.ToString(ff)}°  Pitch: {dp.ToString(ff)}°  Roll: {dr.ToString(ff)}°";
         }
 
+        if (!authVerified)
+        {
+            if (timeoutText != null) timeoutText.text = "";
+            return;
+        }
+
         // ---------------- PARITY (angles: change should match) ----------------
         if (Time.time >= _nextParityCheckAt)
         {
@@ -728,6 +737,32 @@ public class HeadsetMotion : MonoBehaviour
         SetState(MotionState.Sampling);
     }
 
+    public void SetAuthVerified(bool value)
+    {
+        authVerified = value;
+
+        if (!authVerified)
+        {
+            _parityBuilt = false;
+            _confidence = 0f;
+            _lastParityCos = 0f;
+            _havePrevQuest = false;
+            _havePrevImu = false;
+            _imuYprUpdated = false;
+            _pendingMatchedUi = false;
+            _parityEverBuilt = false;
+            _reauthRequired = false;
+            _parityLostTimer = 0f;
+            _parityLostCountdownRunning = false;
+
+            if (parityText) parityText.text = "PARITY | —";
+
+            SetState(MotionState.Paused, true);
+
+            if (uiPanelActions != null)
+                uiPanelActions.HideContinuousAuthVisuals();
+        }
+    }
     // ---------- helpers ----------
     static bool TryGetHmdRotation(out Quaternion q)
     {

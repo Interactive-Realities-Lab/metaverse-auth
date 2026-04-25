@@ -8,6 +8,8 @@ public class VerifiedController : MonoBehaviour
     [SerializeField] private float verifiedDelay = 2f;
     [SerializeField] private UIPanelActions panelActions;
 
+    [SerializeField] private HeadsetMotion headsetMotion;
+
     private Coroutine verifiedRoutine;
     private string currentUserName;
 
@@ -46,6 +48,9 @@ public class VerifiedController : MonoBehaviour
         Debug.Log("Waiting before switching UI...");
         yield return new WaitForSeconds(verifiedDelay);
 
+        if (headsetMotion != null)
+            headsetMotion.SetAuthVerified(true);
+
         Debug.Log("Calling ShowMotion()");
         if (panelActions != null)
         {
@@ -56,14 +61,15 @@ public class VerifiedController : MonoBehaviour
             Debug.LogWarning("panelActions is not assigned!");
         }
 
-        if (FingerprintWsClient.I != null && !string.IsNullOrEmpty(currentUserName))
+        if (FingerprintWsClient.I != null && !string.IsNullOrWhiteSpace(currentUserName))
         {
-            Debug.Log("Starting continuous for: " + currentUserName);
-            FingerprintWsClient.I.StartContinuous(currentUserName);
+            currentUserName = currentUserName.Trim();
+            Debug.Log("Starting continuous for: [" + currentUserName + "]");
+           // FingerprintWsClient.I.StartContinuous(currentUserName);
         }
         else
         {
-            Debug.LogWarning("Current user name is empty, so StartContinuous was not called.");
+            Debug.LogWarning("Continuous NOT started because currentUserName is empty.");
         }
     }
 

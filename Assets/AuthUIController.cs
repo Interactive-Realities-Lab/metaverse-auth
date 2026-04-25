@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -22,6 +23,15 @@ public class AuthUIController : MonoBehaviour
     [SerializeField] TMP_Text fingerprintText;      // RegFingerPrint/Text (TMP)
     [SerializeField] Button okButton;
     [SerializeField] TMP_Text okButtonLabel;
+
+    [Header("Login attempt limit")]
+    [SerializeField] private int maxLoginAttempts = 5;
+    private int loginAttemptCount = 0;
+    private string activeLoginUser = "";
+
+    [SerializeField] private HeadsetMotion headsetMotion;
+
+    [SerializeField] private VerifiedController verifiedController;
 
     bool _busy;
     bool _subscribed;
@@ -140,6 +150,11 @@ public class AuthUIController : MonoBehaviour
             var name = userNameField?.text?.Trim() ?? "";
             if (string.IsNullOrEmpty(name)) { SetPanels(false, "Please enter your name first."); return; }
 
+            activeLoginUser = name;
+            loginAttemptCount = 0;
+
+            verifiedController.SetCurrentUser(name);
+
             SetPanels(false, "Please place your fingerprint to LOGIN.");
 
             if (!await ws.EnsureConnectedAsync()) { SetPanels(false, "Device not found."); return; }
@@ -162,7 +177,12 @@ public class AuthUIController : MonoBehaviour
         // reflect the selection into the input field (nice for consistency)
         if (userNameField) userNameField.text = username ?? "";
 
+        verifiedController.SetCurrentUser(username);
+
         SetPanels(false, $"User: {displayName ?? username}\nPlease place your fingerprint to LOGIN.");
+
+        activeLoginUser = username;
+        loginAttemptCount = 0;
 
         var ws = FingerprintWsClient.I;
         if (ws == null) { SetPanels(false, "WS client not found in scene."); return; }
@@ -210,7 +230,7 @@ public class AuthUIController : MonoBehaviour
     void DisableOk()
     {
         if (!okButton) return;
-        okButton.interactable = false;
+        //okButton.interactable = false;
     }
 
     // ===== Incoming messages =====
@@ -235,7 +255,7 @@ public class AuthUIController : MonoBehaviour
             return;
         }
 
-        if (p.Contains("press a") || p.StartsWith("start s"))
+        if (p.Contains("Press OK") || p.StartsWith("Start"))
         {
             ShowOkPressA();
             return;
@@ -243,11 +263,23 @@ public class AuthUIController : MonoBehaviour
 
         if (step >= 6 || p.Contains("registration done") || p.Contains("verified"))
         {
-            ShowOkBack();
+            //ShowOkBack();
             return;
         }
 
-        DisableOk();
+        //DisableOk();
+    }
+
+    IEnumerator RetryVerify()
+    {
+        yield return new WaitForSeconds(2.5f);
+
+        if (fingerprintText)
+            fingerprintText.text = "Place your finger to LOGIN.";
+
+        //THIS IS WHERE IT GOES
+        if (!string.IsNullOrEmpty(activeLoginUser))
+            FingerprintWsClient.I?.StartVerify(activeLoginUser);
     }
 
     void HandleDeviceMsg(string msg)
@@ -255,10 +287,19 @@ public class AuthUIController : MonoBehaviour
         if (_flow == Flow.None || !fingerprintPanel || !fingerprintPanel.activeInHierarchy) return;
         if (string.IsNullOrEmpty(msg)) return;
 
-        // ignore generic JSON/status lines
         if (msg.Length > 0 && (msg[0] == '{' || msg.Contains("sensorReady") || msg.Contains("\"op\""))) return;
 
         var p = msg.ToLowerInvariant();
+
+        if (p == "place finger")
+        {
+            return;
+        }
+
+        if (p.Contains("press a") || p.StartsWith("start s"))
+        {
+            ShowOkPressA();
+        }
 
         if (p.Contains("user not found"))
         {
@@ -267,13 +308,81 @@ public class AuthUIController : MonoBehaviour
             return;
         }
 
-        // Show raw human-readable device line (e.g., “Sample 1 saved”, “Press A…”)
+        if (p.Contains("wrong finger"))
+        {
+            loginAttemptCount++;
+
+            if (loginAttemptCount < maxLoginAttempts)
+            {
+                int left = maxLoginAttempts - loginAttemptCount;
+
+                if (fingerprintText)
+                    fingerprintText.text = $"Wrong finger. Try again.\nAttempts left: {left}";
+
+                if (okButton != null)
+                    okButton.gameObject.SetActive(false);
+
+                //RETRY HERE
+                StartCoroutine(RetryVerify());
+            }
+            else
+            {
+                if (fingerprintText)
+                    fingerprintText.text = "Too many wrong attempts.\nPlease go back and try again.";
+
+                ShowOkBack();
+
+                loginAttemptCount = 0;
+                activeLoginUser = "";
+            }
+
+            return;
+        }
+
+        if (p.Contains("verify timeout"))
+        {
+            if (fingerprintText)
+                fingerprintText.text = "Verification timed out. Try again.";
+
+            ShowOkBack();
+            return;
+        }
+
+        if (p.Contains("verified"))
+        {
+            if (fingerprintText)
+                fingerprintText.text = msg;
+
+            if (okButton != null)
+                okButton.gameObject.SetActive(false);
+
+            return;
+        }
+
+        if (p.Contains("registration done"))
+        {
+            if (fingerprintText)
+                fingerprintText.text = msg;
+
+            if (okButton != null)
+                okButton.gameObject.SetActive(false);
+            return;
+        }
+
         if (fingerprintText) fingerprintText.text = msg;
     }
 
     public void BackToLogin()
     {
         _flow = Flow.None;
+
+        FingerprintWsClient.I?.StopContinuous();
+        //verifiedController.SetCurrentUser(username);
+        //ws.StartVerify(username);
+
+        if (headsetMotion != null)
+            headsetMotion.SetAuthVerified(false);
+
         SetPanels(true, "");
         if (userNameField) userNameField.text = "";
     }
@@ -288,7 +397,7 @@ public class AuthUIController : MonoBehaviour
         if (okButton)
         {
             okButton.gameObject.SetActive(!showLogin);
-            okButton.interactable = false;     // disabled on initial message
+            okButton.interactable = true;     // disabled on initial message
             if (okButtonLabel) okButtonLabel.text = "OK";
         }
     }

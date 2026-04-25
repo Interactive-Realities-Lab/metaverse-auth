@@ -80,7 +80,7 @@ public class UIFeedbackPlayArea : MonoBehaviour
         Timer.Create(() =>
         {
             desiredAlpha = 0f;
-            //allowFade = true;
+            allowFade = true;
         }, 2f);
     }
 

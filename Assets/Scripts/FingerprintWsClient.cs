@@ -60,6 +60,20 @@ public class FingerprintWsClient : MonoBehaviour
         public VerifyLast last;
     }
 
+    [Serializable]
+    public class UserProfile
+    {
+        public string name;
+        public int id;
+    }
+
+    [Serializable]
+    public class UsersResponse
+    {
+        public string type;
+        public UserProfile[] users;
+    }
+
     // ---------- Events ----------
     public event Action<string> OnDeviceMessage;             // raw device text (JSON or plain)
     public event Action<int, string> OnEnrollSample;         // parsed progress: (step 0..6, pretty text)
@@ -479,7 +493,7 @@ public class FingerprintWsClient : MonoBehaviour
         {
             int next = mStartS.Groups[1].Value[0] - '0';
             Debug.Log($"[WS] PARSED: next start S{next}");
-            OnEnrollSample?.Invoke(Mathf.Clamp(enrollStep, 0, 6), $"Start S{next}: Place your Finger, press OK and lift your finger.");
+            OnEnrollSample?.Invoke(Mathf.Clamp(enrollStep, 0, 6), $"Sample{next}: Place your finger firmly -> press OK -> lift your finger.");
             OnDeviceMessage?.Invoke(trimmed);
             return;
         }
