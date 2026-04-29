@@ -157,6 +157,9 @@ public class AuthUIController : MonoBehaviour
 
             SetPanels(false, "Please place your fingerprint to LOGIN.");
 
+            if (okButton != null)
+                okButton.gameObject.SetActive(false);
+
             if (!await ws.EnsureConnectedAsync()) { SetPanels(false, "Device not found."); return; }
 
             ws.StartVerify(name);
@@ -263,11 +266,9 @@ public class AuthUIController : MonoBehaviour
 
         if (step >= 6 || p.Contains("registration done") || p.Contains("verified"))
         {
-            //ShowOkBack();
-            return;
+          return;
         }
 
-        //DisableOk();
     }
 
     IEnumerator RetryVerify()
@@ -280,6 +281,9 @@ public class AuthUIController : MonoBehaviour
         //THIS IS WHERE IT GOES
         if (!string.IsNullOrEmpty(activeLoginUser))
             FingerprintWsClient.I?.StartVerify(activeLoginUser);
+
+        if (okButton != null)
+            okButton.gameObject.SetActive(false);
     }
 
     void HandleDeviceMsg(string msg)

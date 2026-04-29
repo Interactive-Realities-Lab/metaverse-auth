@@ -53,7 +53,7 @@ public class HeadsetMotion : MonoBehaviour
     float _pendingMatchedUiAt = 0f;
 
     [Header("UI timing")]
-    public float matchedUiDelaySeconds = 0.2f;
+    public float matchedUiDelaySeconds = 0.4f;
 
     [Header("Parity hysteresis")]
     public float buildThreshold = 1.0f;
@@ -267,7 +267,7 @@ public class HeadsetMotion : MonoBehaviour
                 break;
 
             case MotionState.NotMatched:
-                if (controlUIFeedback != null) controlUIFeedback.NotMatching();
+                //if (controlUIFeedback != null) controlUIFeedback.NotMatching();
                 if (onNotMatchingEnter != null) onNotMatchingEnter.Broadcast();
                 break;
 
@@ -308,22 +308,21 @@ public class HeadsetMotion : MonoBehaviour
     {
         Debug.Log("Parity lost timeout reached. Returning to login panel.");
 
+        // Force full logout
+        SetAuthVerified(false);
+        FingerprintWsClient.I?.StopContinuous();
 
-        // Stop trial / reset auth state
         _trialRunning = false;
         _parityLostCountdownRunning = false;
         _parityLostTimer = 0f;
         _reauthRequired = false;
 
-        //switching animator state
-        SetState(MotionState.Sampling);
+        SetState(MotionState.Paused, true);
 
-        // calling login UI panel here
         if (SceneFlow.Instance != null)
             SceneFlow.Instance.OnAuthFailed();
         else if (uiPanelActions != null)
             uiPanelActions.ShowLogin();
-
     }
 
     void OnImuYpr(float pitch, float roll, float yaw)
@@ -462,23 +461,34 @@ public class HeadsetMotion : MonoBehaviour
                     float cosSim = 0f;
                     bool good = false;
 
-                    bool evaluated =
-                        imuUpdatedSinceLastCheck &&
-                        dq.sqrMagnitude >= 1e-6f &&
-                        di.sqrMagnitude >= 1e-6f &&
-                        dq.magnitude >= parityMinMotionDeg &&
-                        di.magnitude >= parityMinMotionDeg;
+                    float questMag = dq.magnitude;
+                    float imuMag = di.magnitude;
+
+                    bool questMoved = questMag >= parityMinMotionDeg;
+                    bool imuMoved = imuMag >= parityMinMotionDeg;
+
+                    // Evaluate if at least one moved
+                    bool evaluated = imuUpdatedSinceLastCheck && (questMoved || imuMoved);
 
                     if (!evaluated)
                     {
-                        Debug.Log("ParityCheck SKIPPED (no motion or no IMU update)");
+                        Debug.Log("ParityCheck SKIPPED (no movement on both devices)");
                     }
-
-                    if (evaluated)
+                    else
                     {
                         Debug.Log($"ParityCheck running | conf={_confidence:F2} | built={_parityBuilt} | ever={_parityEverBuilt}");
-                        cosSim = Vector3.Dot(dq.normalized, di.normalized);
-                        good = cosSim >= parityCosThreshold;
+
+                        if (questMoved && imuMoved)
+                        {
+                            cosSim = Vector3.Dot(dq.normalized, di.normalized);
+                            good = cosSim >= parityCosThreshold;
+                        }
+                        else
+                        {
+                            // One moved but the other didn't → mismatch
+                            cosSim = -1f;
+                            good = false;
+                        }
 
                         _lastParityCos = cosSim;
 
@@ -489,7 +499,7 @@ public class HeadsetMotion : MonoBehaviour
 
                         _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
 
-                        if (!_parityBuilt && _confidence >= buildThreshold)
+                    if (!_parityBuilt && _confidence >= buildThreshold)
                         {
                             _confidence = buildThreshold; // make sure progress reports full
                             _parityBuilt = true;
@@ -518,6 +528,9 @@ public class HeadsetMotion : MonoBehaviour
                                 SceneFlow.Instance.ShowContinuousAuthUI();
                             else if (uiPanelActions != null)
                                 uiPanelActions.ShowContinuousAuth();
+
+                           /* if (tinyRotationFeedback != null)
+                                tinyRotationFeedback.HideNow();*/
                         }
                     }
 
@@ -585,6 +598,9 @@ public class HeadsetMotion : MonoBehaviour
             }*/
 
             SetState(MotionState.Matched);
+
+            if (SceneFlow.Instance != null)
+                SceneFlow.Instance.OpenContentScene("Lobby");
         }
 
         // ---------------- QUEST gyro capture + score ----------------

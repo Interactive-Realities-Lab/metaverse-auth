@@ -1,3 +1,4 @@
+using System.Collections;
 using IRLab.Tools.Timer;
 using System.Collections.Generic;
 using TMPro;
@@ -17,15 +18,30 @@ public class UIFeedbackPlayArea : MonoBehaviour
     [SerializeField] private TMP_Text text;
     [SerializeField] private Image fillImage1;
     [SerializeField] private Image fillImage2;
-    //[SerializeField] private ProgressBar fillProgressBar;
+
+    [SerializeField] private bool showMatchingUI = false;
 
     private float desiredAlpha;
     private float currentAlpha;
     private bool allowFade;
 
+    private Coroutine fadeRoutine;
+
     public void Sampling()
     {
         Debug.Log("Tiny UIFeedbackPlayArea.Sampling called");
+
+        if (!showMatchingUI)
+        {
+            HideNow();
+            return;
+        }
+
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
+        }
 
         foreach (var image in background)
             image.color = colorSampling;
@@ -39,8 +55,17 @@ public class UIFeedbackPlayArea : MonoBehaviour
 
     public void NotMatching()
     {
-        /*if (fillProgressBar != null)
-            fillProgressBar.StopUpdateProgressBar();*/
+        if (!showMatchingUI)
+        {
+            HideNow();
+            return;
+        }
+
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
+        }
 
         foreach (var image in background)
             image.color = colorNotMatching;
@@ -61,6 +86,8 @@ public class UIFeedbackPlayArea : MonoBehaviour
         currentAlpha = 1f;
         desiredAlpha = 1f;
         canvas.alpha = 1f;
+        canvas.interactable = true;
+        canvas.blocksRaycasts = true;
         allowFade = false;
     }
 
@@ -72,16 +99,42 @@ public class UIFeedbackPlayArea : MonoBehaviour
             image.color = colorMatching;
 
         text.text = "Parity Established";
+
         currentAlpha = 1f;
         desiredAlpha = 1f;
         canvas.alpha = 1f;
         allowFade = false;
 
-        Timer.Create(() =>
+        if (fadeRoutine != null)
+            StopCoroutine(fadeRoutine);
+
+        fadeRoutine = StartCoroutine(FadeOutAfterDelay());
+    }
+
+    public void HideNow()
+    {
+        if (canvas != null)
         {
-            desiredAlpha = 0f;
-            allowFade = true;
-        }, 2f);
+            canvas.alpha = 0f;
+            canvas.interactable = false;
+            canvas.blocksRaycasts = false;
+        }
+
+        allowFade = false;
+
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
+        }
+    }
+
+    private IEnumerator FadeOutAfterDelay()
+    {
+        yield return new WaitForSeconds(2f);
+
+        allowFade = true;
+        desiredAlpha = 0f;
     }
 
     void Update()

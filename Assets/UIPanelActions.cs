@@ -8,15 +8,25 @@ public class UIPanelActions : MonoBehaviour
     public GameObject logRegPanel;
     public GameObject RegFingerPrintPanel;
     public GameObject ContinuousAuthPanel;
-    public GameObject rotationMatchingUI;
 
+    [SerializeField] private UIFeedbackPlayArea tinyRotationFeedback;
+    [SerializeField] private CanvasGroup rotationMatchingUI;
     [SerializeField] private GameObject canvas0; // pair device
     [SerializeField] private GameObject canvas1; // parity 
     [SerializeField] private GameObject canvas2; // lobby
 
     private void Start()
     {
-        if (rotationMatchingUI) rotationMatchingUI.SetActive(false);
+        SetCanvasGroup(rotationMatchingUI, false);
+    }
+
+    private void SetCanvasGroup(CanvasGroup cg, bool show)
+    {
+        if (cg == null) return;
+
+        cg.alpha = show ? 1f : 0f;
+        cg.interactable = show;
+        cg.blocksRaycasts = show;
     }
 
     public void ShowUserLogin()
@@ -24,7 +34,7 @@ public class UIPanelActions : MonoBehaviour
         if (userLoginPanel) userLoginPanel.SetActive(true);
         if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(false);
         if (logRegPanel) logRegPanel.SetActive(false);
-        if (rotationMatchingUI) rotationMatchingUI.SetActive(false);
+        SetCanvasGroup(rotationMatchingUI, false);
     }
 
     public void ShowLogin()
@@ -32,7 +42,7 @@ public class UIPanelActions : MonoBehaviour
         if (userLoginPanel) userLoginPanel.SetActive(false);
         if (logRegPanel) logRegPanel.SetActive(true);
         if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(false);
-        if (rotationMatchingUI) rotationMatchingUI.SetActive(false);
+        SetCanvasGroup(rotationMatchingUI, false);
     }
 
     // Initial auth screen: Pair Device
@@ -43,7 +53,7 @@ public class UIPanelActions : MonoBehaviour
         if (RegFingerPrintPanel) RegFingerPrintPanel.SetActive(false);
 
         if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(true);
-        if (rotationMatchingUI) rotationMatchingUI.SetActive(false);
+        SetCanvasGroup(rotationMatchingUI, false);
 
         if (canvas0) canvas0.SetActive(true);
         if (canvas1) canvas1.SetActive(false);
@@ -58,11 +68,14 @@ public class UIPanelActions : MonoBehaviour
         if (RegFingerPrintPanel) RegFingerPrintPanel.SetActive(false);
 
         if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(true);
-        if (rotationMatchingUI) rotationMatchingUI.SetActive(false);
+        SetCanvasGroup(rotationMatchingUI, false);
+
+        if (tinyRotationFeedback != null)
+            tinyRotationFeedback.HideNow();
 
         if (canvas0) canvas0.SetActive(false);
         if (canvas1) canvas1.SetActive(true);
-        if (canvas2) canvas2.SetActive(false);
+        if (canvas2) canvas2.SetActive(false);       
     }
 
     // Matched / rotation established
@@ -71,13 +84,9 @@ public class UIPanelActions : MonoBehaviour
         if (userLoginPanel) userLoginPanel.SetActive(false);
         if (logRegPanel) logRegPanel.SetActive(false);
         if (RegFingerPrintPanel) RegFingerPrintPanel.SetActive(false);
-
-        if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(true);
-        if (rotationMatchingUI) rotationMatchingUI.SetActive(true);
-
-        if (canvas0) canvas0.SetActive(false);
-        if (canvas1) canvas1.SetActive(false);
-        if (canvas2) canvas2.SetActive(true);
+        if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(false);
+       
+        SetCanvasGroup(rotationMatchingUI, true);
     }
 
     public void HideContinuousAuthVisuals()
