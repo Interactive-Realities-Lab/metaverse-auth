@@ -104,6 +104,11 @@ public class FingerprintWsClient : MonoBehaviour
         DontDestroyOnLoad(transform.root.gameObject);
     }
 
+    public bool IsConnected()
+    {
+        return ws != null && ws.State == WebSocketState.Open;
+    }
+
     async void Start()
     {
         await Task.Yield();

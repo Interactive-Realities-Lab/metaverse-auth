@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -12,6 +13,9 @@ public class UserListUI : MonoBehaviour
     public Transform userListContent;
     public Button userButtonPrefab;
 
+    private Coroutine requestRoutine;
+    private bool usersLoaded = false;
+
     private readonly List<GameObject> spawnedButtons = new List<GameObject>();
 
     void OnEnable()
@@ -23,23 +27,60 @@ public class UserListUI : MonoBehaviour
             wsClient.OnUsersList += HandleUsersList;
 
         if (userListPanel != null)
-            userListPanel.SetActive(false);
+            userListPanel.SetActive(true);
+
+        usersLoaded = false;
+
+        if (requestRoutine != null)
+            StopCoroutine(requestRoutine);
+
+        requestRoutine = StartCoroutine(RequestUsersUntilLoaded());
     }
 
     void OnDisable()
     {
+        if (requestRoutine != null)
+        {
+            StopCoroutine(requestRoutine);
+            requestRoutine = null;
+        }
+
         if (wsClient != null)
             wsClient.OnUsersList -= HandleUsersList;
     }
 
-    // Call this from the input field click or a small arrow button
+    private IEnumerator RequestUsersUntilLoaded()
+    {
+        float timeout = 8f;
+        float elapsed = 0f;
+
+        while (!usersLoaded && elapsed < timeout)
+        {
+            if (wsClient == null)
+                wsClient = FingerprintWsClient.I;
+
+            //ONLY request if connected
+            if (wsClient != null && wsClient.IsConnected())
+            {
+                wsClient.RequestUsers();
+            }
+
+            yield return new WaitForSeconds(0.7f);
+            elapsed += 0.7f;
+        }
+
+        requestRoutine = null;
+    }
+
     public void OpenUserList()
     {
-        if (wsClient == null) return;
+        if (userListPanel != null)
+            userListPanel.SetActive(true);
 
         ClearUserList();
-        userListPanel.SetActive(true);
-        wsClient.RequestUsers();
+
+        if (wsClient != null)
+            wsClient.RequestUsers();
     }
 
     public void CloseUserList()
@@ -50,6 +91,8 @@ public class UserListUI : MonoBehaviour
 
     void HandleUsersList(FingerprintWsClient.UserProfile[] users)
     {
+        usersLoaded = true;
+
         ClearUserList();
 
         if (users == null || users.Length == 0)
