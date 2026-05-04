@@ -29,6 +29,14 @@ public class AuthUIController : MonoBehaviour
     private int loginAttemptCount = 0;
     private string activeLoginUser = "";
 
+    [Header("Voice Prompts")]
+    //[SerializeField] private AudioSource voiceSource;
+    //[SerializeField] private AudioClip loginClip;
+    //[SerializeField] private AudioClip firmlyClip;
+    [SerializeField] private AudioClip[] sampleClips; // size 6
+    [SerializeField] private AudioSource voiceSource;
+
+
     [SerializeField] private HeadsetMotion headsetMotion;
 
     [SerializeField] private VerifiedController verifiedController;
@@ -98,6 +106,25 @@ public class AuthUIController : MonoBehaviour
         _subscribed = false;
     }
 
+    void PlayVoice(AudioClip clip)
+    {
+        if (voiceSource == null || clip == null) return;
+
+        voiceSource.Stop();
+        voiceSource.clip = clip;
+        voiceSource.Play();
+    }
+
+    void PlaySampleVoice(int step)
+    {
+        if (sampleClips == null) return;
+
+        int index = step - 1; // sample 1 = index 0
+
+        if (index >= 0 && index < sampleClips.Length)
+            PlayVoice(sampleClips[index]);
+    }
+
     void EnsureWsSubscriptions()
     {
         var ws = FingerprintWsClient.I;
@@ -115,6 +142,9 @@ public class AuthUIController : MonoBehaviour
     async Task RegisterFlow()
     {
         _flow = Flow.Register;
+
+        currentSample = 0;
+
         if (_busy) return;
         _busy = true;
         try
@@ -133,7 +163,7 @@ public class AuthUIController : MonoBehaviour
 
             ws.StartEnroll(name);
         }
-        finally { _busy = false; }
+        finally { _busy = false; }      
     }
 
     async Task LoginFlow()
@@ -214,6 +244,21 @@ public class AuthUIController : MonoBehaviour
         DisableOk(); // will be enabled when device tells to press A
     }
 
+    int currentSample = 0;
+
+    void PlayNextSampleVoice()
+    {
+        if (sampleClips == null || sampleClips.Length == 0) return;
+
+        if (currentSample < sampleClips.Length)
+        {
+            Debug.Log("PLAYING SAMPLE VOICE FROM OK BUTTON: " + (currentSample + 1));
+
+            PlayVoice(sampleClips[currentSample]);
+            currentSample++;
+        }
+    }
+
     // ===== OK button modes ===== 
     IEnumerator EnableOkAfterDelay(float delay)
     {
@@ -221,6 +266,8 @@ public class AuthUIController : MonoBehaviour
 
         if (okButton != null)
             okButton.interactable = true;
+
+        PlayNextSampleVoice();
     }
 
     Coroutine okRoutine;
@@ -260,8 +307,16 @@ public class AuthUIController : MonoBehaviour
     // ===== Incoming messages =====
     void HandleEnrollSample(int step, string pretty)
     {
+        Debug.Log("ENROLL SAMPLE STEP = " + step + " | pretty = " + pretty);
+
         if (fingerprintPanel && fingerprintPanel.activeInHierarchy && fingerprintText)
             fingerprintText.text = pretty;
+
+        /*if (_flow == Flow.Register && step >= 1 && step <= 6)
+        {
+            Debug.Log("PLAYING VOICE SAMPLE " + step);
+            //PlaySampleVoice(step);
+        }*/
 
         var p = (pretty ?? "").ToLowerInvariant();
 
@@ -292,6 +347,28 @@ public class AuthUIController : MonoBehaviour
 
     }
 
+    int ExtractSampleNumber(string msg)
+    {
+        if (string.IsNullOrEmpty(msg)) return -1;
+
+        string p = msg.ToLowerInvariant();
+
+        for (int i = 1; i <= 6; i++)
+        {
+            if (p.Contains("sample " + i) ||
+                p.Contains("sample" + i) ||
+                p.Contains("start " + i) ||
+                p.Contains("start" + i) ||
+                p.Contains("start s" + i) ||
+                p.Contains("start sample " + i))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     IEnumerator RetryVerify()
     {
         yield return new WaitForSeconds(2.5f);
@@ -315,6 +392,16 @@ public class AuthUIController : MonoBehaviour
         if (msg.Length > 0 && (msg[0] == '{' || msg.Contains("sensorReady") || msg.Contains("\"op\""))) return;
 
         var p = msg.ToLowerInvariant();
+
+        Debug.Log("DEVICE MSG = " + msg);
+
+        int sampleNumber = ExtractSampleNumber(msg);
+
+        /*if (sampleNumber >= 1 && sampleNumber <= 6)
+        {
+            Debug.Log("PLAY SAMPLE VOICE = " + sampleNumber);
+            PlaySampleVoice(sampleNumber);
+        }*/
 
         if (p == "place finger")
         {
