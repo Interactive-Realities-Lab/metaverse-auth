@@ -13,6 +13,8 @@ public class UserListUI : MonoBehaviour
     public Transform userListContent;
     public Button userButtonPrefab;
 
+    public AuthUIController authUIController;
+
     private Coroutine requestRoutine;
     private bool usersLoaded = false;
 
@@ -117,10 +119,22 @@ public class UserListUI : MonoBehaviour
 
     void SelectUser(string username)
     {
+        if (string.IsNullOrEmpty(username))
+            return;
+
         if (userInput != null)
             userInput.text = username;
 
         CloseUserList();
+
+        if (authUIController != null)
+        {
+            authUIController.BeginVerifyForSelectedUser(username, username);
+        }
+        else
+        {
+            Debug.LogError("AuthUIController is not assigned in UserListUI.");
+        }
     }
 
     void ClearUserList()
@@ -137,7 +151,6 @@ public class UserListUI : MonoBehaviour
     {
         string username = userInput.text.Trim();
         if (string.IsNullOrEmpty(username) || wsClient == null) return;
-
         wsClient.StartVerify(username);
     }
 

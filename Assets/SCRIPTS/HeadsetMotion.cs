@@ -528,9 +528,6 @@ public class HeadsetMotion : MonoBehaviour
                                 SceneFlow.Instance.ShowContinuousAuthUI();
                             else if (uiPanelActions != null)
                                 uiPanelActions.ShowContinuousAuth();
-
-                           /* if (tinyRotationFeedback != null)
-                                tinyRotationFeedback.HideNow();*/
                         }
                     }
 
@@ -591,11 +588,6 @@ public class HeadsetMotion : MonoBehaviour
 
             if (uiPanelActions != null)
                 uiPanelActions.ShowRotationUI();
-
-           /* if (otpHandler != null)
-            {
-                otpHandler.EnableSpecificPanel(2);
-            }*/
 
             SetState(MotionState.Matched);
 

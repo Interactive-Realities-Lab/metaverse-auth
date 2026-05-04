@@ -184,6 +184,9 @@ public class AuthUIController : MonoBehaviour
 
         SetPanels(false, $"User: {displayName ?? username}\nPlease place your fingerprint to LOGIN.");
 
+        if (okButton != null)
+            okButton.gameObject.SetActive(false);
+
         activeLoginUser = username;
         loginAttemptCount = 0;
 
@@ -211,14 +214,32 @@ public class AuthUIController : MonoBehaviour
         DisableOk(); // will be enabled when device tells to press A
     }
 
-    // ===== OK button modes =====
+    // ===== OK button modes ===== 
+    IEnumerator EnableOkAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (okButton != null)
+            okButton.interactable = true;
+    }
+
+    Coroutine okRoutine;
+
     void ShowOkPressA()
     {
         if (!okButton) return;
+
         okButton.onClick.RemoveAllListeners();
         okButton.onClick.AddListener(() => FingerprintWsClient.I?.PressA());
+
         if (okButtonLabel) okButtonLabel.text = "OK";
-        okButton.interactable = true;
+
+        okButton.interactable = false;
+
+        if (okRoutine != null)
+            StopCoroutine(okRoutine);
+
+        okRoutine = StartCoroutine(EnableOkAfterDelay(2f));
     }
 
     void ShowOkBack()
