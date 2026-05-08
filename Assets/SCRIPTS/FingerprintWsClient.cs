@@ -591,4 +591,23 @@ public class FingerprintWsClient : MonoBehaviour
 
         return false;
     }
+
+    public async void Logout()
+    {
+        await SendText("logout");
+    }
+
+    public void SendDeleteUser(string username)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            Debug.LogWarning("Delete user failed: username is empty.");
+            return;
+        }
+
+        username = username.Trim();
+
+        Debug.Log("UNITY SENDING delete:" + username);
+        SendText("delete:" + username);
+    }
 }

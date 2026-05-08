@@ -89,6 +89,27 @@ public class UIPanelActions : MonoBehaviour
         SetCanvasGroup(rotationMatchingUI, true);
     }
 
+    public void ShowParityLosingUI()
+    {
+        if (userLoginPanel) userLoginPanel.SetActive(false);
+        if (logRegPanel) logRegPanel.SetActive(false);
+        if (RegFingerPrintPanel) RegFingerPrintPanel.SetActive(false);
+        if (ContinuousAuthPanel) ContinuousAuthPanel.SetActive(false);
+
+        SetCanvasGroup(rotationMatchingUI, true);
+
+        if (tinyRotationFeedback != null)
+            tinyRotationFeedback.AlmostLost();
+    }
+
+    public void HideParityLosingUI()
+    {
+        if (tinyRotationFeedback != null)
+            tinyRotationFeedback.HideNow();
+
+        SetCanvasGroup(rotationMatchingUI, false);
+    }
+
     public void HideContinuousAuthVisuals()
     {
         if (canvas0) canvas0.SetActive(false);

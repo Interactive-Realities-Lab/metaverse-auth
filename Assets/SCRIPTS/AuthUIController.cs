@@ -38,8 +38,8 @@ public class AuthUIController : MonoBehaviour
 
 
     [SerializeField] private HeadsetMotion headsetMotion;
-
     [SerializeField] private VerifiedController verifiedController;
+    [SerializeField] private UserListUI userListUI;
 
     bool _busy;
     bool _subscribed;
@@ -462,11 +462,24 @@ public class AuthUIController : MonoBehaviour
 
         if (p.Contains("verified"))
         {
+            Debug.Log("AUTH VERIFIED BLOCK HIT");
+            Debug.Log("activeLoginUser = " + activeLoginUser);
+
             if (fingerprintText)
                 fingerprintText.text = msg;
 
             if (okButton != null)
                 okButton.gameObject.SetActive(false);
+
+            if (userListUI != null)
+            {
+                Debug.Log("Calling UserListUI.OnAdminVerified with: " + activeLoginUser);
+                userListUI.OnAdminVerified(activeLoginUser);
+            }
+            else
+            {
+                Debug.LogError("UserListUI reference is missing in AuthUIController Inspector.");
+            }
 
             return;
         }
@@ -489,8 +502,7 @@ public class AuthUIController : MonoBehaviour
         _flow = Flow.None;
 
         FingerprintWsClient.I?.StopContinuous();
-        //verifiedController.SetCurrentUser(username);
-        //ws.StartVerify(username);
+        FingerprintWsClient.I?.Logout();
 
         if (headsetMotion != null)
             headsetMotion.SetAuthVerified(false);

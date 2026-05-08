@@ -11,7 +11,12 @@ public class UserListUI : MonoBehaviour
     public TMP_InputField userInput;
     public GameObject userListPanel;
     public Transform userListContent;
-    public Button userButtonPrefab;
+    public GameObject userRowPrefab;
+
+    [Header("Admin Remove")]
+    public string adminUsername = "shaki";
+
+    private string pendingRemoveUser = "";
 
     public AuthUIController authUIController;
 
@@ -93,8 +98,9 @@ public class UserListUI : MonoBehaviour
 
     void HandleUsersList(FingerprintWsClient.UserProfile[] users)
     {
-        usersLoaded = true;
+        Debug.Log("HandleUsersList called. Count: " + (users == null ? 0 : users.Length));
 
+        usersLoaded = true;
         ClearUserList();
 
         if (users == null || users.Length == 0)
@@ -102,19 +108,82 @@ public class UserListUI : MonoBehaviour
 
         foreach (FingerprintWsClient.UserProfile user in users)
         {
-            if (userButtonPrefab == null || userListContent == null)
+            if (userRowPrefab == null)
+            {
+                Debug.LogError("userRowPrefab is not assigned.");
                 return;
+            }
 
-            Button btn = Instantiate(userButtonPrefab, userListContent);
-            spawnedButtons.Add(btn.gameObject);
+            if (userListContent == null)
+            {
+                Debug.LogError("userListContent is not assigned.");
+                return;
+            }
 
-            TMP_Text txt = btn.GetComponentInChildren<TMP_Text>();
-            if (txt != null)
-                txt.text = user.name;
+            GameObject row = Instantiate(userRowPrefab, userListContent);
+            row.SetActive(true);
+            spawnedButtons.Add(row);
+
+            Button nameBtn = row.transform.Find("UserButton").GetComponent<Button>();
+            Button removeBtn = row.transform.Find("RemoveBtn").GetComponent<Button>();
+            TMP_Text txt = row.transform.Find("UserButton/Text (TMP)").GetComponent<TMP_Text>();
+
+            txt.text = user.name;
 
             string selectedName = user.name;
-            btn.onClick.AddListener(() => SelectUser(selectedName));
+
+            nameBtn.onClick.RemoveAllListeners();
+            nameBtn.onClick.AddListener(() =>
+            {
+                Debug.Log("NAME clicked: " + selectedName); 
+                SelectUser(selectedName);
+            });
+
+            removeBtn.onClick.RemoveAllListeners();
+            removeBtn.onClick.AddListener(() =>
+            {
+                Debug.Log("REMOVE clicked: " + selectedName); 
+                AskAdminToRemoveUser(selectedName);
+            });
         }
+    }
+
+    void AskAdminToRemoveUser(string usernameToRemove)
+    {
+        pendingRemoveUser = usernameToRemove;
+
+        Debug.Log("Remove requested for: " + pendingRemoveUser);
+        Debug.Log("Admin verification required: " + adminUsername);
+
+        if (wsClient == null)
+            wsClient = FingerprintWsClient.I;
+
+        if (wsClient == null || !wsClient.IsConnected())
+        {
+            Debug.LogError("Device not connected. Cannot verify admin.");
+            return;
+        }
+
+        // First verify admin fingerprint
+        if (userInput != null)
+            userInput.text = adminUsername;
+
+        if (authUIController != null)
+        {
+            authUIController.BeginVerifyForSelectedUser(adminUsername, adminUsername);
+        }
+        else
+        {
+            wsClient.StartVerify(adminUsername);
+        }
+    }
+
+    void ShowUserOptions(string username)
+    {
+        Debug.Log("Show dropdown for: " + username);
+
+        // Later:
+        // show panel with Edit and Remove buttons
     }
 
     void SelectUser(string username)
@@ -122,8 +191,8 @@ public class UserListUI : MonoBehaviour
         if (string.IsNullOrEmpty(username))
             return;
 
-        if (userInput != null)
-            userInput.text = username;
+        /*if (userInput != null)
+            userInput.text = username;*/
 
         CloseUserList();
 
@@ -160,5 +229,30 @@ public class UserListUI : MonoBehaviour
         if (string.IsNullOrEmpty(username) || wsClient == null) return;
 
         wsClient.StartEnroll(username);
+    }
+
+    public void OnAdminVerified(string verifiedUsername)
+    {
+        Debug.Log("OnAdminVerified called with: " + verifiedUsername);
+        Debug.Log("pendingRemoveUser = " + pendingRemoveUser);
+        Debug.Log("adminUsername = " + adminUsername);
+
+        if (string.IsNullOrEmpty(pendingRemoveUser))
+        {
+            Debug.Log("No pending removal.");
+            return;
+        }
+
+        if (verifiedUsername.Trim().ToLower() == adminUsername.Trim().ToLower())
+        {
+            Debug.Log("ADMIN VERIFIED. Sending delete command for: " + pendingRemoveUser);
+            wsClient.DeleteUser(pendingRemoveUser);
+        }
+        else
+        {
+            Debug.Log("Admin verification failed. Verified user was: " + verifiedUsername);
+        }
+
+        pendingRemoveUser = "";
     }
 }

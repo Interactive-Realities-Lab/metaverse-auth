@@ -32,13 +32,19 @@ public class HeadsetMotion : MonoBehaviour
     [SerializeField] private UIOTPHandler otpHandler;
 
     [Header("Parity logic (angles)")]
-    public float parityBuildSeconds = 1.0f;       // kept for tuning/reference
+    //public float parityBuildSeconds = 1.0f;       // kept for tuning/reference
     public float parityCheckEverySeconds = 0.15f; // how often to evaluate
-    public float parityDeltaToleranceDeg = 4.5f;  // kept for tuning/reference
-    public int parityBadChecksToLose = 3;         // kept for tuning/reference
+    //public float parityDeltaToleranceDeg = 4.5f;  // kept for tuning/reference
+    //public int parityBadChecksToLose = 3;         // kept for tuning/reference
     public float parityCosThreshold = 0.3f;
     public float parityMinMotionDeg = 2.0f;
 
+    [Header("One-sided motion tolerance")]
+    public float oneSidedMotionDeg = 4.0f;
+    public int oneSidedBadChecksToPunish = 3;
+    public float oneSidedStepDown = 0.03f;
+
+    private int _oneSidedBadCount = 0;
     bool _parityBuilt = false;
     float _nextParityCheckAt = 0f;
     float _confidence = 0f;
@@ -67,6 +73,11 @@ public class HeadsetMotion : MonoBehaviour
     [Header("Continuous Auth UI")]
     public ControlUIFeedback controlUIFeedback;
     public ProgressBar progressBar;
+    
+
+    [Header("Parity Warning")]
+    public float almostLostThreshold = 0.45f;
+    private bool _almostLostShowing = false;
 
     [Header("Parity Lost Timeout")]
     public float parityLostTimeoutSeconds = 10f;
@@ -478,27 +489,80 @@ public class HeadsetMotion : MonoBehaviour
                     {
                         Debug.Log($"ParityCheck running | conf={_confidence:F2} | built={_parityBuilt} | ever={_parityEverBuilt}");
 
+                        bool shouldApplyConfidence = true;
+
                         if (questMoved && imuMoved)
                         {
                             cosSim = Vector3.Dot(dq.normalized, di.normalized);
                             good = cosSim >= parityCosThreshold;
+
+                            _oneSidedBadCount = 0;
                         }
                         else
                         {
-                            // One moved but the other didn't → mismatch
-                            cosSim = -1f;
-                            good = false;
+                            float oneSidedAmount = Mathf.Max(questMag, imuMag);
+
+                            if (oneSidedAmount >= oneSidedMotionDeg)
+                            {
+                                _oneSidedBadCount++;
+
+                                cosSim = -1f;
+                                good = false;
+
+                                if (_oneSidedBadCount < oneSidedBadChecksToPunish)
+                                {
+                                    Debug.Log($"One-sided motion detected but waiting: {_oneSidedBadCount}/{oneSidedBadChecksToPunish}");
+                                    shouldApplyConfidence = false;
+                                }
+                            }
+                            else
+                            {
+                                Debug.Log("Small one-sided motion ignored.");
+                                shouldApplyConfidence = false;
+                            }
                         }
 
                         _lastParityCos = cosSim;
 
-                        if (good)
-                            _confidence += stepUp;
-                        else
-                            _confidence -= stepDown;
+                        if (shouldApplyConfidence)
+                        {
+                            if (good)
+                                _confidence += stepUp;
+                            else
+                            {
+                                if (_oneSidedBadCount >= oneSidedBadChecksToPunish)
+                                    _confidence -= oneSidedStepDown;
+                                else
+                                    _confidence -= stepDown;
+                            }
 
-                        _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+                            _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
 
+                            Debug.Log($"AlmostLost check | built={_parityBuilt} conf={_confidence:F2}");
+
+                            if (_parityBuilt && _confidence <= almostLostThreshold && _confidence > loseThreshold)
+                            {
+                                if (!_almostLostShowing)
+                                {
+                                    _almostLostShowing = true;
+
+                                    if (uiPanelActions != null)
+                                        uiPanelActions.ShowParityLosingUI();
+                                }
+                            }
+                            else
+                            {
+                                if (_almostLostShowing)
+                                {
+                                    _almostLostShowing = false;
+
+                                    if (uiPanelActions != null)
+                                        uiPanelActions.HideParityLosingUI();
+                                }
+                            }
+                        }
+
+                     
                     if (!_parityBuilt && _confidence >= buildThreshold)
                         {
                             _confidence = buildThreshold; // make sure progress reports full

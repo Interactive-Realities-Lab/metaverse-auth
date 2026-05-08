@@ -46,6 +46,26 @@ public class ControlUIFeedback : MonoBehaviour
         text.text = "Parity Lost!";
     }
 
+    public void ParityLosing()
+    {
+        foreach (var image in background)
+            image.color = colorNotMatching;
+
+        if (fillImage1 != null)
+        {
+            fillImage1.fillAmount = 0.5f;
+            fillImage1.color = colorNotMatching;
+        }
+
+        if (fillImage2 != null)
+        {
+            fillImage2.fillAmount = 0.5f;
+            fillImage2.color = colorNotMatching;
+        }
+
+        text.text = "Parity Losing.....";
+    }
+
     public void Matched()
     {
         foreach (var image in background)
