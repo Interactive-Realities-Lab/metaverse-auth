@@ -44,6 +44,10 @@ public class HeadsetMotion : MonoBehaviour
     public int oneSidedBadChecksToPunish = 3;
     public float oneSidedStepDown = 0.03f;
 
+    [Header("Attachment Gate")]
+    public float minMotionRatio = 0.45f;
+    public float maxMotionRatio = 2.2f;
+
     private int _oneSidedBadCount = 0;
     bool _parityBuilt = false;
     float _nextParityCheckAt = 0f;
@@ -322,6 +326,7 @@ public class HeadsetMotion : MonoBehaviour
         // Force full logout
         SetAuthVerified(false);
         FingerprintWsClient.I?.StopContinuous();
+        FingerprintWsClient.I?.Logout();
 
         _trialRunning = false;
         _parityLostCountdownRunning = false;
@@ -494,7 +499,19 @@ public class HeadsetMotion : MonoBehaviour
                         if (questMoved && imuMoved)
                         {
                             cosSim = Vector3.Dot(dq.normalized, di.normalized);
-                            good = cosSim >= parityCosThreshold;
+
+                            float motionRatio = questMag / Mathf.Max(imuMag, 0.001f);
+
+                            bool similarAmount =
+                                motionRatio >= minMotionRatio &&
+                                motionRatio <= maxMotionRatio;
+
+                            good = cosSim >= parityCosThreshold && similarAmount;
+
+                            if (!similarAmount)
+                            {
+                                Debug.Log($"ATTACHMENT GATE FAILED | qMag={questMag:F2} imuMag={imuMag:F2} ratio={motionRatio:F2}");
+                            }
 
                             _oneSidedBadCount = 0;
                         }

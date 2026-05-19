@@ -208,7 +208,7 @@ public class AuthUIController : MonoBehaviour
         _flow = Flow.Login;
 
         // reflect the selection into the input field (nice for consistency)
-        if (userNameField) userNameField.text = username ?? "";
+        //if (userNameField) userNameField.text = username ?? "";
 
         verifiedController.SetCurrentUser(username);
 
