@@ -190,6 +190,12 @@ MonoBehaviour:
   fingerprintText: {fileID: 0}
   okButton: {fileID: 0}
   okButtonLabel: {fileID: 0}
+  maxLoginAttempts: 5
+  sampleClips: []
+  voiceSource: {fileID: 0}
+  headsetMotion: {fileID: 0}
+  verifiedController: {fileID: 0}
+  userListUI: {fileID: 0}
 --- !u!1 &119381830
 GameObject:
   m_ObjectHideFlags: 0
@@ -966,7 +972,7 @@ RectTransform:
   m_Children:
   - {fileID: 571651616}
   m_Father: {fileID: 843607805}
-  m_RootOrder: 21
+  m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1269,7 +1275,6 @@ Transform:
   - {fileID: 2100901553}
   - {fileID: 156655335}
   - {fileID: 2129269770}
-  - {fileID: 1708512443}
   - {fileID: 617049593}
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -2277,37 +2282,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
---- !u!1 &1708512442
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1708512443}
-  m_Layer: 0
-  m_Name: XRSpawnPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1708512443
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1708512442}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 843607805}
-  m_RootOrder: 20
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1001 &1748366991
 PrefabInstance:
   m_ObjectHideFlags: 0
