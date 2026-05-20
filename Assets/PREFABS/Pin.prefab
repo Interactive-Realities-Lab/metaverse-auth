@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5570816643400164079}
   - component: {fileID: 5243885530628666164}
   - component: {fileID: 7886936111720601688}
-  - component: {fileID: 4780446966786299872}
+  - component: {fileID: 7432771380870474626}
   m_Layer: 0
   m_Name: Pin
   m_TagString: Pin
@@ -28,7 +28,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2248843096354516273}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -36,6 +35,7 @@ Transform:
   m_Children:
   - {fileID: 628708874080743799}
   m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2261437133518139055
 MeshFilter:
@@ -65,7 +65,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 40e089ed702409f4a8a05f418cf6bcc5, type: 2}
+  - {fileID: 2100000, guid: 19fe332d34089344e88812d01898bcae, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -95,17 +95,8 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2248843096354516273}
   m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
   m_IsTrigger: 0
-  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
   m_Radius: 0.06065192
   m_Height: 0.38077128
   m_Direction: 1
@@ -117,27 +108,16 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2248843096354516273}
-  serializedVersion: 4
+  serializedVersion: 2
   m_Mass: 1
   m_Drag: 1
   m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &4780446966786299872
+--- !u!114 &7432771380870474626
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -146,22 +126,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 2248843096354516273}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14e43b34c6f1ec04e8e1cb2afcf6c943, type: 3}
+  m_Script: {fileID: 11500000, guid: c007311164b728a439302d95b284cc80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _minCollisionVelocity: 0.2
+  _minCollisionVelocity: 1
   _maxAngularVelocity: 7
-  _audioSource: {fileID: 3376375402564334676}
-  _pointAudio: {fileID: 8300000, guid: 498f0de1cb26592478f42c14d6da2e11, type: 3}
-  _collisionTags:
-  - _value: Ball
-  - _value: Pin
+  _audioSource: {fileID: 0}
+  _pointAudio: {fileID: 0}
+  _collisionTags: []
 --- !u!1001 &9097637825592127519
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    serializedVersion: 3
     m_TransformParent: {fileID: 6826995842228194530}
     m_Modifications:
     - target: {fileID: 6394677704537697304, guid: 556d7f8c873d7ba4094856531d8abd40, type: 3}
@@ -209,17 +186,9 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 556d7f8c873d7ba4094856531d8abd40, type: 3}
 --- !u!4 &628708874080743799 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8572832811682398568, guid: 556d7f8c873d7ba4094856531d8abd40, type: 3}
-  m_PrefabInstance: {fileID: 9097637825592127519}
-  m_PrefabAsset: {fileID: 0}
---- !u!82 &3376375402564334676 stripped
-AudioSource:
-  m_CorrespondingSourceObject: {fileID: 5807962282741056587, guid: 556d7f8c873d7ba4094856531d8abd40, type: 3}
   m_PrefabInstance: {fileID: 9097637825592127519}
   m_PrefabAsset: {fileID: 0}

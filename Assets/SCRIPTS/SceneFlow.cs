@@ -121,19 +121,17 @@ public class SceneFlow : MonoBehaviour
             ui.ShowContinuousAuth();
     }
 
-    public void RestoreLobbyUI()
+    public void RestoreCurrentSceneAfterParity()
     {
-        Debug.Log("Restoring lobby UI, hiding parity UI");
+        Debug.Log("Parity reestablished. Keeping current scene.");
 
-        // Hide auth visuals
         var ui = FindObjectOfType<UIPanelActions>(true);
         if (ui != null)
             ui.HideContinuousAuthVisuals();
 
-        // Show lobby UI
         if (currentLobbyUIRoot != null)
             currentLobbyUIRoot.SetActive(true);
-    }
+    }   
 
     IEnumerator ReturnToAuthenticationRoutine()
     {

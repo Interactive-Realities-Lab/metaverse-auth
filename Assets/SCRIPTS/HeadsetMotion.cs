@@ -579,20 +579,26 @@ public class HeadsetMotion : MonoBehaviour
                             }
                         }
 
-                     
-                    if (!_parityBuilt && _confidence >= buildThreshold)
+
+                        if (!_parityBuilt && _confidence >= buildThreshold)
                         {
-                            _confidence = buildThreshold; // make sure progress reports full
+                            bool wasReestablishing = _parityEverBuilt;
+
+                            _confidence = buildThreshold;
+
                             _parityBuilt = true;
                             _parityEverBuilt = true;
-                            _reauthRequired = false;   // stop re-auth timeout once parity is built again
+                            _reauthRequired = false;
 
                             Debug.Log("HeadsetMotion: MATCHED");
 
                             if (SceneFlow.Instance != null)
-                                SceneFlow.Instance.RestoreLobbyUI();
-                            else if (uiPanelActions != null)
-                                uiPanelActions.HideContinuousAuthVisuals();
+                            {
+                                if (wasReestablishing)
+                                    SceneFlow.Instance.RestoreCurrentSceneAfterParity();
+                                else
+                                    SceneFlow.Instance.OpenContentScene("Lobby");
+                            }
 
                             _pendingMatchedUi = true;
                             _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
@@ -673,7 +679,7 @@ public class HeadsetMotion : MonoBehaviour
             SetState(MotionState.Matched);
 
             if (SceneFlow.Instance != null)
-                SceneFlow.Instance.OpenContentScene("Lobby");
+                SceneFlow.Instance.RestoreCurrentSceneAfterParity();
         }
 
         // ---------------- QUEST gyro capture + score ----------------

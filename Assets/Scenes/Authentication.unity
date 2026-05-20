@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3521173, g: 0.72388566, b: 0.9584319, a: 1}
+  m_IndirectSpecularColor: {r: 0.35186327, g: 0.7232134, b: 0.958181, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -13053,7 +13053,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devEchoToUI: 0
-  deviceIp: 192.168.0.103
+  deviceIp: 192.168.0.34
   port: 83
   wsPath: /
   enableImu: 1
@@ -42840,20 +42840,22 @@ MonoBehaviour:
   parityText: {fileID: 488999140}
   otpHandler: {fileID: 1692041948}
   parityCheckEverySeconds: 0.2
-  parityCosThreshold: 0.65
+  parityCosThreshold: 0.6
   parityMinMotionDeg: 2
   oneSidedMotionDeg: 4
   oneSidedBadChecksToPunish: 3
   oneSidedStepDown: 0.03
+  minMotionRatio: 0.25
+  maxMotionRatio: 4
   matchedUiDelaySeconds: 0.4
   buildThreshold: 1
-  loseThreshold: 0.2
+  loseThreshold: 0.05
   stepUp: 0.15
-  stepDown: 0.05
+  stepDown: 0.03
   authVerified: 0
   controlUIFeedback: {fileID: 1541340626}
   progressBar: {fileID: 1760860039}
-  almostLostThreshold: 0.6
+  almostLostThreshold: 0.4
   parityLostTimeoutSeconds: 10
   timeoutText: {fileID: 1676928209}
   uiPanelActions: {fileID: 8293533729936726383}
