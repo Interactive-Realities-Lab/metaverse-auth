@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.35186327, g: 0.7232134, b: 0.958181, a: 1}
+  m_IndirectSpecularColor: {r: 0.3521173, g: 0.72388566, b: 0.9584319, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -13053,7 +13053,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devEchoToUI: 0
-  deviceIp: 192.168.0.34
+  deviceIp: 192.168.0.103
   port: 83
   wsPath: /
   enableImu: 1
@@ -24443,6 +24443,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e4e6cca11330d4088d729ab4fc9d9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1255102427 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2591975828599768710, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1255102428 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8975337273357236284, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1255102429 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 122084618895949332, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1255102430 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3412649390972202448, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1267636729 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5880312570150257314, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -35726,7 +35746,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6675491043827273688, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
   m_PrefabInstance: {fileID: 1255102424}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1255102427}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6803edce0201f574f923fd9d10e5b30a, type: 3}
@@ -42658,6 +42678,7 @@ GameObject:
   - component: {fileID: 8293533729936726384}
   - component: {fileID: 8293533729936726385}
   - component: {fileID: 8293533729936726387}
+  - component: {fileID: 8293533729936726388}
   m_Layer: 5
   m_Name: UIController
   m_TagString: Untagged
@@ -42855,7 +42876,7 @@ MonoBehaviour:
   authVerified: 0
   controlUIFeedback: {fileID: 1541340626}
   progressBar: {fileID: 1760860039}
-  almostLostThreshold: 0.4
+  almostLostThreshold: 0.5
   parityLostTimeoutSeconds: 10
   timeoutText: {fileID: 1676928209}
   uiPanelActions: {fileID: 8293533729936726383}
@@ -42872,8 +42893,19 @@ MonoBehaviour:
   rowGyroText: {fileID: 1899164461}
   resetButton: {fileID: 1434238906}
   imuSlerp: 0.15
-  gyroWindowSeconds: 3
-  gyroScoreEverySeconds: 0.5
+  gyroWindowSeconds: 3.5
+  useGyroForParity: 1
+  gyroBuildThreshold: 0.45
+  gyroLoseThreshold: 0.2
+  gyroStepUp: 0.15
+  gyroStepDown: 0.03
+  imuGyroTimeoutSeconds: 2
+  gyroQuestActiveRadPerSec: 0.1
+  gyroImuActiveRadPerSec: 0.1
+  gyroMismatchStepDown: 0.1
+  detachedLoseSeconds: 2
+  detachedRatioThreshold: 3
+  gyroScoreEverySeconds: 0.25
   gyroScoreWarnThreshold: 0.6
 --- !u!114 &8293533729936726385
 MonoBehaviour:
@@ -43001,6 +43033,23 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &8293533729936726388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8293533729936726373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dedd7fd5ca37df4ca7292d41ba491d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  leftRay: {fileID: 1255102429}
+  rightRay: {fileID: 1255102427}
+  leftDirectInteractor: {fileID: 1255102430}
+  rightDirectInteractor: {fileID: 1255102428}
+  bowlingSceneName: Bowling
 --- !u!114 &9108292829394508247
 MonoBehaviour:
   m_ObjectHideFlags: 0

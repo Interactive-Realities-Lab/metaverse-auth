@@ -153,6 +153,24 @@ public class HeadsetMotion : MonoBehaviour
     [Tooltip("Seconds of data used for correlation (2-5s recommended).")]
     public float gyroWindowSeconds = 3.0f;
 
+    [Header("Gyro-Based Parity Decision")]
+    public bool useGyroForParity = true;
+    public float gyroBuildThreshold = 0.55f;
+    public float gyroLoseThreshold = 0.35f;
+    public float gyroStepUp = 0.08f;
+    public float gyroStepDown = 0.02f;
+
+    [Header("IMU Freshness")]
+    public float imuGyroTimeoutSeconds = 0.75f;
+    public float gyroQuestActiveRadPerSec = 8f;
+    public float gyroImuActiveRadPerSec = 4f;
+    public float gyroMismatchStepDown = 0.08f;
+
+    [Header("IMU Detach Detection")]
+    public float detachedLoseSeconds = 2.0f;
+    public float detachedRatioThreshold = 3.0f;
+    private float _detachedTimer = 0f;
+
     [Tooltip("How often to recompute score (seconds).")]
     public float gyroScoreEverySeconds = 0.5f;
 
@@ -179,6 +197,8 @@ public class HeadsetMotion : MonoBehaviour
     float _gyroScoreX = 0f, _gyroScoreY = 0f, _gyroScoreZ = 0f;
 
     float _lastImuYprAt = -999f;
+    float _lastImuGyroAt = -999f;
+    float _lastBothQuietAt = -999f;
     bool _imuYprUpdated = false;
 
     void Awake()
@@ -355,12 +375,15 @@ public class HeadsetMotion : MonoBehaviour
     //Called by FingerprintWsClient whenever it parses ESP gyro
     void OnImuGyro(float gx, float gy, float gz)
     {
-        _espGyro = new Vector3(gx, gy, gz);
+        _espGyro = new Vector3(gx, gy, gz) * Mathf.Deg2Rad;
         _haveG = true;
+        _lastImuGyroAt = Time.time;
 
         float t = Time.time;
         _espGyroBuf.Add(new Sample(t, _espGyro));
         TrimOld(_espGyroBuf, t - gyroWindowSeconds);
+
+        Debug.Log($"IMU RAW GYRO = {_espGyro.magnitude:F3}");
 
 /*#if UNITY_EDITOR
         Debug.Log($"ESP GYRO: gx={gx:F3}, gy={gy:F3}, gz={gz:F3}");
@@ -446,8 +469,11 @@ public class HeadsetMotion : MonoBehaviour
         }
 
         // ---------------- PARITY (angles: change should match) ----------------
-        if (Time.time >= _nextParityCheckAt)
+        // ---------------- PARITY (angles: change should match) ----------------
+        if (!useGyroForParity)
         {
+            if (Time.time >= _nextParityCheckAt)
+            {
             _nextParityCheckAt = Time.time + Mathf.Max(0.05f, parityCheckEverySeconds);
 
             bool haveImuNow = _haveP && _haveR && _haveY;
@@ -650,7 +676,6 @@ public class HeadsetMotion : MonoBehaviour
                     {
                         SetState(MotionState.Sampling);
                     }
-                }
 
                 // ALWAYS update previous values
                 _prevQuestPYR = questNow;
@@ -668,7 +693,8 @@ public class HeadsetMotion : MonoBehaviour
                 SetState(MotionState.Sampling);
             }
         }
-
+     }
+    }
         if (_pendingMatchedUi && _parityBuilt && Time.time >= _pendingMatchedUiAt)
         {
             _pendingMatchedUi = false;
@@ -688,19 +714,193 @@ public class HeadsetMotion : MonoBehaviour
             float t = Time.time;
             _questGyroBuf.Add(new Sample(t, questW));
             TrimOld(_questGyroBuf, t - gyroWindowSeconds);
+            Debug.Log($"QUEST RAW GYRO = {questW.magnitude:F3}");
         }
 
         // Recompute score periodically
         if (Time.time >= _nextGyroScoreAt)
+{
+    _nextGyroScoreAt = Time.time + Mathf.Max(0.05f, gyroScoreEverySeconds);
+
+    if (_haveG && _questGyroBuf.Count > 20 && _espGyroBuf.Count > 20)
+    {
+        ComputeGyroScore(out _gyroScore, out _gyroScoreX, out _gyroScoreY, out _gyroScoreZ);
+
+        if (useGyroForParity && authVerified)
         {
-            _nextGyroScoreAt = Time.time + Mathf.Max(0.05f, gyroScoreEverySeconds);
+            bool imuGyroFresh = Time.time - _lastImuGyroAt <= imuGyroTimeoutSeconds;
 
-            if (_haveG && _questGyroBuf.Count > 20 && _espGyroBuf.Count > 20)
+            if (!imuGyroFresh)
             {
-                ComputeGyroScore(out _gyroScore, out _gyroScoreX, out _gyroScoreY, out _gyroScoreZ);
-            }
-        }
+                float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
 
+                if (qGyroMag < gyroQuestActiveRadPerSec)
+                {
+                    Debug.Log("IMU stale but Quest quiet, holding confidence");
+                    return;
+                }
+
+                _confidence -= gyroStepDown * 3f;
+                _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+
+                Debug.Log($"IMU gyro stale while Quest moving. Losing confidence. conf={_confidence:F2}");
+                UpdateParityUIState();
+            }
+
+            else
+            {
+               float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
+               float iGyroMag = AvgGyroMag(_espGyroBuf, 0.7f);
+
+               float imuAge = Time.time - _lastImuGyroAt;
+
+               Debug.Log(
+                $"GYRO RAW | age={imuAge:F2}s " +
+                $"score={_gyroScore:F2} " +
+                $"qMag={qGyroMag:F2} " +
+                $"iMag={iGyroMag:F2}");
+
+               bool questActive = qGyroMag >= gyroQuestActiveRadPerSec;
+               bool imuActive = iGyroMag >= gyroImuActiveRadPerSec;
+
+               Debug.Log(
+                $"ACTIVE? quest={questActive} imu={imuActive} " +
+                $"qMag={qGyroMag:F2} iMag={iGyroMag:F2}");
+
+               bool bothQuiet =
+                qGyroMag < gyroQuestActiveRadPerSec &&
+                iGyroMag < gyroImuActiveRadPerSec;
+
+               bool oneSidedGyroMismatch =
+                    qGyroMag > 0.15f &&
+                    qGyroMag > iGyroMag * 1.5f;
+
+               Debug.Log(
+               $"GYRO PARITY | score={_gyroScore:F2} " +
+               $"qMag={qGyroMag:F2} iMag={iGyroMag:F2} " +
+               $"conf={_confidence:F2}");
+
+               bool detachedMotion =
+                qGyroMag >= gyroQuestActiveRadPerSec &&
+                iGyroMag < gyroImuActiveRadPerSec;
+
+               if (_parityBuilt && detachedMotion)
+                {
+                    _detachedTimer += gyroScoreEverySeconds;
+
+                    Debug.Log($"DETACH CHECK | timer={_detachedTimer:F1}s qMag={qGyroMag:F2} iMag={iGyroMag:F2}");
+
+                    if (_detachedTimer >= detachedLoseSeconds)
+                    {
+                        _confidence = 0f;
+                        _parityBuilt = false;
+                        _pendingMatchedUi = false;
+                        _reauthRequired = true;
+
+                        Debug.Log("HeadsetMotion: LOST by IMU detach");
+
+                        if (SceneFlow.Instance != null)
+                            SceneFlow.Instance.ShowContinuousAuthUI();
+                        else if (uiPanelActions != null)
+                            uiPanelActions.ShowContinuousAuth();
+
+                        UpdateParityUIState();
+                    }
+                }
+               else
+                {
+                    _detachedTimer = 0f;
+                }
+
+               bool tooFastMotion = qGyroMag > 2.5f || iGyroMag > 2.5f;
+
+               if (tooFastMotion)
+                {
+                    Debug.Log("GYRO PARITY | too fast motion, holding confidence");
+                    _oneSidedBadCount = 0;
+                }
+               else if (bothQuiet)
+                {
+                    Debug.Log("GYRO PARITY | both quiet, holding confidence");
+                    _lastBothQuietAt = Time.time;
+                    _oneSidedBadCount = 0;
+                }
+                else if (oneSidedGyroMismatch)
+                {
+                    bool justStartedMoving = Time.time - _lastBothQuietAt < 1.0f;
+
+                    if (justStartedMoving)
+                    {
+                        Debug.Log("GYRO PARITY | movement just started, ignoring first mismatch");
+                        _oneSidedBadCount = 0;
+                    }
+                    else
+                    {
+                        _oneSidedBadCount++;
+
+                        if (_oneSidedBadCount >= 3)
+                        {
+                            _confidence -= gyroMismatchStepDown;
+                            _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+                            UpdateParityUIState();
+                        }
+                    }
+                }
+                else
+                {
+                    _oneSidedBadCount = 0;
+
+                    if (_gyroScore >= gyroBuildThreshold)
+                        _confidence += gyroStepUp;
+                    else if (_gyroScore < gyroLoseThreshold)
+                        _confidence -= gyroStepDown;
+                }
+
+               _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+               UpdateParityUIState();
+
+               if (!_parityBuilt && _confidence >= buildThreshold)
+               {
+                bool wasReestablishing = _parityEverBuilt;
+
+                _confidence = buildThreshold;
+                _parityBuilt = true;
+                _parityEverBuilt = true;
+                _reauthRequired = false;
+
+                Debug.Log("HeadsetMotion: MATCHED by GYRO");
+
+                if (SceneFlow.Instance != null)
+                {
+                    if (wasReestablishing)
+                        SceneFlow.Instance.RestoreCurrentSceneAfterParity();
+                    else
+                        SceneFlow.Instance.OpenContentScene("Lobby");
+                }
+
+                _pendingMatchedUi = true;
+                _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
+               }
+               else if (_parityBuilt && _confidence <= loseThreshold)
+               {
+                _parityBuilt = false;
+                _pendingMatchedUi = false;
+                _reauthRequired = true;
+
+                Debug.Log("HeadsetMotion: LOST by GYRO");
+
+                if (SceneFlow.Instance != null)
+                    SceneFlow.Instance.ShowContinuousAuthUI();
+                else if (uiPanelActions != null)
+                    uiPanelActions.ShowContinuousAuth();
+
+                UpdateParityUIState();
+               }
+            
+            }
+       }             
+    }
+}
         if (rowGyroText)
         {
             string f2 = $"F{Mathf.Clamp(decimals, 0, 5)}";
@@ -740,7 +940,9 @@ public class HeadsetMotion : MonoBehaviour
         }
 
         // -------- parity re-establish timeout logic --------
-        if (_reauthRequired && !_parityBuilt)
+        bool trulyLost = _reauthRequired && !_parityBuilt && _state == MotionState.NotMatched;
+
+        if (trulyLost)
         {
             if (!_parityLostCountdownRunning)
             {
@@ -762,7 +964,7 @@ public class HeadsetMotion : MonoBehaviour
         }
      
        // -------- timeout countdown text --------
-        if (timeoutText != null)
+        if (trulyLost)
         {
             if (_reauthRequired && !_parityBuilt)
                 timeoutText.text = $"Re-authenticate in {Mathf.Max(0f, parityLostTimeoutSeconds - _parityLostTimer):F1}s";
@@ -771,6 +973,47 @@ public class HeadsetMotion : MonoBehaviour
         }
     }
 
+    void UpdateParityUIState()
+    {
+      if (_parityBuilt && _confidence <= almostLostThreshold && _confidence > loseThreshold)
+     {
+        if (!_almostLostShowing)
+        {
+            _almostLostShowing = true;
+
+            if (uiPanelActions != null)
+                uiPanelActions.ShowParityLosingUI();
+        }
+     }
+     else
+     {
+        if (_almostLostShowing)
+        {
+            _almostLostShowing = false;
+
+            if (uiPanelActions != null)
+                uiPanelActions.HideParityLosingUI();
+        }
+     }
+
+     if (parityText)
+     {
+        if (_parityBuilt)
+            parityText.text = $"PARITY | BUILT (gyro:{_gyroScore:F2})";
+        else if (_confidence <= loseThreshold)
+            parityText.text = $"PARITY | LOST (gyro:{_gyroScore:F2})";
+        else
+            parityText.text = $"PARITY | SAMPLING (gyro:{_gyroScore:F2})";
+     }
+
+     if (_parityBuilt)
+        SetState(MotionState.Matched);
+     else if (_parityEverBuilt && _confidence <= loseThreshold)
+        SetState(MotionState.NotMatched);
+     else
+        SetState(MotionState.Sampling);
+    }
+    
     // ---------- Reset (button) ----------
     public void OnResetClicked()
     {
@@ -878,6 +1121,25 @@ public class HeadsetMotion : MonoBehaviour
 
         w = Vector3.zero;
         return false;
+    }
+
+    float AvgGyroMag(List<Sample> buf, float seconds)
+    {
+    float now = Time.time;
+    float sum = 0f;
+    int count = 0;
+
+    for (int i = buf.Count - 1; i >= 0; i--)
+    {
+        if (now - buf[i].t > seconds)
+            break;
+
+        sum += buf[i].v.magnitude;
+        count++;
+    }
+
+    if (count == 0) return 0f;
+    return sum / count;
     }
 
     static void TrimOld(List<Sample> buf, float tMin)
