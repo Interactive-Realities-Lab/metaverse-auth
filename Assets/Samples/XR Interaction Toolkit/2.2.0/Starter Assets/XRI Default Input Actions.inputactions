@@ -1573,6 +1573,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Menu",
+            "id": "37590a1b-4aa4-4608-b496-e624a2d4cbb9",
+            "actions": [
+                {
+                    "name": "MenuToggle",
+                    "type": "Button",
+                    "id": "822b0889-5b73-4220-8464-d8512f97fc54",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f7bdd224-cecf-4f12-ad0c-1771c5822a14",
+                    "path": "<XRController>{RightHand}/secondaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MenuToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

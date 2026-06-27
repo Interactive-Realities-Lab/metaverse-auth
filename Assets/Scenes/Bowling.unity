@@ -2022,6 +2022,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7109610128628195440, guid: eebee5203675a9f4e83324a6daa329da, type: 3}
+      propertyPath: m_MovementType
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7748887130893478474, guid: eebee5203675a9f4e83324a6daa329da, type: 3}
       propertyPath: m_RootOrder
       value: 15

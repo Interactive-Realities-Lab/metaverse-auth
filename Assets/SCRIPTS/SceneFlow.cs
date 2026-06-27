@@ -5,7 +5,7 @@ using System.Collections;
 public class SceneFlow : MonoBehaviour
 {
     public static SceneFlow Instance;
-    public GameObject currentLobbyUIRoot;
+    public GameObject currentSceneUIRoot;
 
     [Header("Scene Names")]
     public string authenticationSceneName = "Authentication";
@@ -99,7 +99,17 @@ public class SceneFlow : MonoBehaviour
         }
 
         // Find Lobby UI root (IMPORTANT: set tag or name)
-        currentLobbyUIRoot = GameObject.FindWithTag("LobbyUI");
+        currentSceneUIRoot = FindUIRootInScene(sceneName);
+
+        if (currentSceneUIRoot != null)
+        {
+            currentSceneUIRoot.SetActive(true);
+            Debug.Log("Activated UI root in scene: " + currentSceneUIRoot.name);
+        }
+        else
+        {
+            Debug.LogWarning("No UI root found in scene: " + sceneName);
+        }
 
         yield return null;
         MoveXrOriginToSpawnPointInScene(sceneName);
@@ -112,8 +122,8 @@ public class SceneFlow : MonoBehaviour
         Debug.Log("Showing parity lost UI, hiding lobby");
 
         // Hide lobby UI
-        if (currentLobbyUIRoot != null)
-            currentLobbyUIRoot.SetActive(false);
+        if (currentSceneUIRoot != null)
+            currentSceneUIRoot.SetActive(false);
 
         // Show auth UI
         var ui = FindObjectOfType<UIPanelActions>(true);
@@ -129,8 +139,8 @@ public class SceneFlow : MonoBehaviour
         if (ui != null)
             ui.HideContinuousAuthVisuals();
 
-        if (currentLobbyUIRoot != null)
-            currentLobbyUIRoot.SetActive(true);
+        if (currentSceneUIRoot != null)
+            currentSceneUIRoot.SetActive(true);
     }   
 
     IEnumerator ReturnToAuthenticationRoutine()
@@ -168,5 +178,26 @@ public class SceneFlow : MonoBehaviour
             Debug.Log($"Scene {i}: {s.name}, loaded={s.isLoaded}");
         }
         Debug.Log("Active Scene: " + SceneManager.GetActiveScene().name);
+    }
+
+    GameObject FindUIRootInScene(string sceneName)
+    {
+        Scene targetScene = SceneManager.GetSceneByName(sceneName);
+
+        if (!targetScene.IsValid() || !targetScene.isLoaded)
+            return null;
+
+        foreach (GameObject root in targetScene.GetRootGameObjects())
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.CompareTag("SceneUI"))
+                {
+                    return t.gameObject;
+                }
+            }
+        }
+
+        return null;
     }
 }
