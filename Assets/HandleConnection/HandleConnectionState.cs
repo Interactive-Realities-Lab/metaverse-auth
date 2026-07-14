@@ -12,7 +12,7 @@ public class HandleConnectionState : MonoBehaviour
     public bool IsInputHeld { get; private set; } = false;
     public float HeldValue { get; private set; }
 
-    [SerializeField] public float HeldThreasholdValue { get; private set; } = 4f;
+    [field: SerializeField] public float HeldThreasholdValue { get; private set; } = 4f;
 
     private void Awake()
     {

@@ -1,0 +1,5 @@
+C:/Users/shakr/Desktop/Unity6-metaverse-auth/.utmp/RelWithDebInfo/2wa5g564/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/shakr/Desktop/Unity6-metaverse-auth/.utmp/RelWithDebInfo/2wa5g564/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/shakr/Desktop/Unity6-metaverse-auth/.utmp/RelWithDebInfo/2wa5g564/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+C:/Users/shakr/Desktop/Unity6-metaverse-auth/.utmp/RelWithDebInfo/2wa5g564/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+C:/Users/shakr/Desktop/Unity6-metaverse-auth/.utmp/RelWithDebInfo/2wa5g564/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir

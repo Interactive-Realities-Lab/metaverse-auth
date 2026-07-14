@@ -105,6 +105,7 @@ public class HeadsetMotion : MonoBehaviour
 
     [Header("CSV Logger")]
     public HeadsetMotionCsvLogger csvLogger;
+    public ParityEventLogger parityEventLogger;
 
     private float _parityLostTimer = 0f;
     private bool _parityLostCountdownRunning = false;

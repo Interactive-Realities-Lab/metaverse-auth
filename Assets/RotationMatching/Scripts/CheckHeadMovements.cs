@@ -20,7 +20,7 @@ public class CheckHeadMovements : MonoBehaviour
 
     private bool allowPauseSampling = false;
 
-    [SerializeField] public bool IsRotating { get; private set; }
+    [field: SerializeField] public bool IsRotating { get; private set; }
 
 
     private void LateUpdate()

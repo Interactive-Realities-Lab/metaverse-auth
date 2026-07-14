@@ -52,7 +52,7 @@ public class Pin : Interactable
     private void OnDeckDroppedDown()
     {
         Disabled = false;
-        Rigidbody.angularVelocity = Rigidbody.velocity = Vector3.zero;
+        Rigidbody.angularVelocity = Rigidbody.linearVelocity = Vector3.zero;
         transform.position = _startPosition;
         transform.rotation = _startRotation;
     }

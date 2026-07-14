@@ -4,12 +4,12 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit;
+
 
 public class MorseControllerV2 : MonoBehaviour
 {
     public InputActionReference inputDigit = null;
-    [SerializeField] XRRayInteractor ray;
+    [SerializeField] UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor ray;
     [SerializeField] TOTP totp;
     [SerializeField] private UnityEvent OnMorseCodeCorrect;
     [SerializeField] private UnityEvent OnMorseCodeIncorrect;

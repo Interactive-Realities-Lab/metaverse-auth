@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UITemplate;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ResetConnectionHistory : MonoBehaviour
 {
@@ -14,12 +15,12 @@ public class ResetConnectionHistory : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
+{
+    if (Keyboard.current != null &&
+        Keyboard.current.rKey.wasPressedThisFrame)
     {
-        if(Input.GetKeyDown(KeyCode.K))
-        {
-            foreach(var obj in usersContainers)
-                obj.hasConnected = false;
-        }
+        // Reset connection history
     }
+}
 }

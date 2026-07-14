@@ -33,7 +33,7 @@ public class Ball : Interactable
     {
         if (Disabled || _collisionCount == 0) return;
         base.FixedUpdate();
-        float normalizedVelocity = Rigidbody.velocity.magnitude.Remap(0.0f, _maxVelocity, 0.0f, 1.0f);
+        float normalizedVelocity = Rigidbody.linearVelocity.magnitude.Remap(0.0f, _maxVelocity, 0.0f, 1.0f);
         AudioSource.volume = _volumeCurve.Evaluate(normalizedVelocity);
         AudioSource.pitch = _pitchCurve.Evaluate(normalizedVelocity);
     }

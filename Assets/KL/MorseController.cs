@@ -5,14 +5,14 @@ using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
-using UnityEngine.XR.Interaction.Toolkit;
+
 
 public class MorseController : MonoBehaviour
 {
 
 
     [Header("References")]
-    [SerializeField] XRRayInteractor ray;
+    [SerializeField] UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor ray;
     [SerializeField] TOTP totp;
     public Slider slider;
     public MorseCodeDisplayer display;

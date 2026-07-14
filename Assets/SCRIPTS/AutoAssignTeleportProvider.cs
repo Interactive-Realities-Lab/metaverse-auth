@@ -1,15 +1,15 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+
 
 public class AutoAssignTeleportProvider : MonoBehaviour
 {
     void Start()
     {
-        TeleportationProvider provider = FindObjectOfType<TeleportationProvider>();
+        UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationProvider provider = FindObjectOfType<UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationProvider>();
 
-        TeleportationArea[] areas = FindObjectsOfType<TeleportationArea>();
+        UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea[] areas = FindObjectsOfType<UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea>();
 
-        foreach (TeleportationArea area in areas)
+        foreach (UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea area in areas)
         {
             area.teleportationProvider = provider;
         }
