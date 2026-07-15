@@ -180,6 +180,10 @@ public class HeadsetMotion : MonoBehaviour
 
     float _lastParityCos = 0f;
 
+    float _currentQuestYaw = 0f;
+    float _currentQuestPitch = 0f;
+    float _currentQuestRoll = 0f;
+
     // -------- Trial Timer --------
     float _trialStartTime = 0f;
     bool _trialRunning = false;
@@ -344,6 +348,25 @@ public class HeadsetMotion : MonoBehaviour
     {
         Debug.Log("Parity lost timeout reached. Returning to login panel.");
 
+        if (parityEventLogger != null)
+        {
+            float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
+
+            float imuYawQ = -_y;
+            float imuPitchQ = -_r;
+            float imuRollQ = -_p;
+
+           parityEventLogger.LogEvent(
+            "REAUTH_TIMEOUT",
+            trialTime,
+            _currentQuestYaw, _currentQuestPitch, _currentQuestRoll,
+            imuYawQ, imuPitchQ, imuRollQ,
+            _confidence,
+            _lastParityCos,
+            _gyroScore
+          );
+        }
+
         // Force full logout
         SetAuthVerified(false);
         FingerprintWsClient.I?.StopContinuous();
@@ -417,6 +440,10 @@ public class HeadsetMotion : MonoBehaviour
             questYaw = eul.y;
             questPitch = eul.x;
             questRoll = eul.z;
+
+            _currentQuestYaw = questYaw;
+            _currentQuestPitch = questPitch;
+            _currentQuestRoll = questRoll;
 
             if (rowQuestText)
             {
@@ -694,7 +721,7 @@ public class HeadsetMotion : MonoBehaviour
                 SetState(MotionState.Sampling);
             }
         }
-     }
+      }
     }
         if (_pendingMatchedUi && _parityBuilt && Time.time >= _pendingMatchedUiAt)
         {
@@ -871,6 +898,25 @@ public class HeadsetMotion : MonoBehaviour
 
                 Debug.Log("HeadsetMotion: MATCHED by GYRO");
 
+                if (parityEventLogger != null)
+                {
+                    float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
+
+                    float imuYawQ = -_y;
+                    float imuPitchQ = -_r;
+                    float imuRollQ = -_p;
+
+                    parityEventLogger.LogEvent(
+                        "BUILT",
+                        trialTime,
+                        questYaw, questPitch, questRoll,
+                        imuYawQ, imuPitchQ, imuRollQ,
+                        _confidence,
+                        _lastParityCos,
+                        _gyroScore
+                    );
+                }
+
                 if (SceneFlow.Instance != null)
                 {
                     if (wasReestablishing)
@@ -889,6 +935,25 @@ public class HeadsetMotion : MonoBehaviour
                 _reauthRequired = true;
 
                 Debug.Log("HeadsetMotion: LOST by GYRO");
+
+                if (parityEventLogger != null)
+                {
+                    float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
+
+                    float imuYawQ = -_y;
+                    float imuPitchQ = -_r;
+                    float imuRollQ = -_p;
+
+                    parityEventLogger.LogEvent(
+                        "LOST",
+                        trialTime,
+                        questYaw, questPitch, questRoll,
+                        imuYawQ, imuPitchQ, imuRollQ,
+                        _confidence,
+                        _lastParityCos,
+                        _gyroScore
+                    );
+                }
 
                 if (SceneFlow.Instance != null)
                     SceneFlow.Instance.ShowContinuousAuthUI();
@@ -911,33 +976,51 @@ public class HeadsetMotion : MonoBehaviour
         }
 
         // ---------------- CSV row write ----------------
-        if (csvLogger != null && csvLogger.ShouldWriteRow(Time.time))
+        // if (csvLogger != null && csvLogger.ShouldWriteRow(Time.time))
+        // {
+        //     bool haveQuestNow = haveQuest;
+        //     bool haveImuNow = _haveP && _haveR && _haveY;
+
+        //     if (haveQuestNow && haveImuNow)
+        //     {
+        //         float imuYawQ = -_y;
+        //         float imuPitchQ = -_r;
+        //         float imuRollQ = -_p;
+
+        //         float dy = Mathf.DeltaAngle(imuYawQ, questYaw);
+        //         float dp = Mathf.DeltaAngle(imuPitchQ, questPitch);
+        //         float dr = Mathf.DeltaAngle(imuRollQ, questRoll);
+
+        //         float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
+
+        //         csvLogger.WriteRow(
+        //             trialTime,
+        //             questYaw, questPitch, questRoll,
+        //             _p, _r, _y,
+        //             imuPitchQ, imuYawQ, imuRollQ,
+        //             dy, dp, dr,
+        //             _parityBuilt,
+        //             _lastParityCos
+        //         );
+        //     }
+        // }
+
+        if (parityEventLogger != null)
         {
-            bool haveQuestNow = haveQuest;
-            bool haveImuNow = _haveP && _haveR && _haveY;
+            float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
 
-            if (haveQuestNow && haveImuNow)
-            {
-                float imuYawQ = -_y;
-                float imuPitchQ = -_r;
-                float imuRollQ = -_p;
+            float imuYawQ = -_y;
+            float imuPitchQ = -_r;
+            float imuRollQ = -_p;
 
-                float dy = Mathf.DeltaAngle(imuYawQ, questYaw);
-                float dp = Mathf.DeltaAngle(imuPitchQ, questPitch);
-                float dr = Mathf.DeltaAngle(imuRollQ, questRoll);
-
-                float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
-
-                csvLogger.WriteRow(
-                    trialTime,
-                    questYaw, questPitch, questRoll,
-                    _p, _r, _y,
-                    imuPitchQ, imuYawQ, imuRollQ,
-                    dy, dp, dr,
-                    _parityBuilt,
-                    _lastParityCos
-                );
-            }
+            parityEventLogger.TickStillLostHeartbeat(
+                trialTime,
+                questYaw, questPitch, questRoll,
+                imuYawQ, imuPitchQ, imuRollQ,
+                _confidence,
+                _lastParityCos,
+                _gyroScore
+            );
         }
 
         // -------- parity re-establish timeout logic --------
@@ -1043,10 +1126,15 @@ public class HeadsetMotion : MonoBehaviour
         if (parityText) parityText.text = "PARITY | —";
 
         // start new CSV logging session
-        if (csvLogger != null)
+        // if (csvLogger != null)
+        // {
+        //     csvLogger.StopCsvLogging();
+        //     csvLogger.StartCsvLogging();
+        // }
+        if (parityEventLogger != null)
         {
-            csvLogger.StopCsvLogging();
-            csvLogger.StartCsvLogging();
+        parityEventLogger.StopLogging();   // closes previous file if any
+        parityEventLogger.StartLogging();
         }
         // Start trial timer
         _trialStartTime = Time.time;
