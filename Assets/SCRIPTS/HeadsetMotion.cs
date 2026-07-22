@@ -48,6 +48,16 @@ public class HeadsetMotion : MonoBehaviour
     public float minMotionRatio = 0.45f;
     public float maxMotionRatio = 2.2f;
 
+    [Header("Pitch/Roll Attachment Check")]
+    public float attachmentPitchToleranceDeg = 8f;
+    public float attachmentRollToleranceDeg = 8f;
+    public float attachmentConfirmSeconds = 2f;
+
+    private float _trustedPitchOffset = 0f;
+    private float _trustedRollOffset = 0f;
+    private bool _haveTrustedOrientationOffset = false;
+    private float _orientationValidTimer = 0f;
+
     private int _oneSidedBadCount = 0;
     bool _parityBuilt = false;
     float _nextParityCheckAt = 0f;
@@ -106,6 +116,7 @@ public class HeadsetMotion : MonoBehaviour
     [Header("CSV Logger")]
     public HeadsetMotionCsvLogger csvLogger;
     public ParityEventLogger parityEventLogger;
+    public XRDeviceLogger xrDeviceLogger;
 
     private float _parityLostTimer = 0f;
     private bool _parityLostCountdownRunning = false;
@@ -171,6 +182,8 @@ public class HeadsetMotion : MonoBehaviour
     public float detachedLoseSeconds = 2.0f;
     public float detachedRatioThreshold = 3.0f;
     private float _detachedTimer = 0f;
+    private bool _detachmentLockout = false;
+    
 
     [Tooltip("How often to recompute score (seconds).")]
     public float gyroScoreEverySeconds = 0.5f;
@@ -634,15 +647,21 @@ public class HeadsetMotion : MonoBehaviour
                         }
 
 
-                        if (!_parityBuilt && _confidence >= buildThreshold)
+                        if (!_parityBuilt &&
+                            !_detachmentLockout &&
+                            _confidence >= buildThreshold)
                         {
                             bool wasReestablishing = _parityEverBuilt;
 
-                            _confidence = buildThreshold;
+                            _confidence = buildThreshold;               
 
                             _parityBuilt = true;
                             _parityEverBuilt = true;
                             _reauthRequired = false;
+
+                            XRDeviceLogger.Instance?.SetParityEstablished(true);
+
+                            Debug.Log("Parity established. XR data recording started.");
 
                             Debug.Log("HeadsetMotion: MATCHED");
 
@@ -756,6 +775,19 @@ public class HeadsetMotion : MonoBehaviour
 
         if (useGyroForParity && authVerified)
         {
+        //    if (_detachmentLockout)
+        //    {
+        //         _confidence = 0f;
+        //         _parityBuilt = false;
+        //         _pendingMatchedUi = false;
+        //         _reauthRequired = true;
+
+        //         Debug.Log("GYRO PARITY | DETACHMENT LOCKOUT ACTIVE - BUILD BLOCKED");
+
+        //         UpdateParityUIState();
+        //         return;
+        //     }    
+           
             bool imuGyroFresh = Time.time - _lastImuGyroAt <= imuGyroTimeoutSeconds;
 
             if (!imuGyroFresh)
@@ -779,6 +811,51 @@ public class HeadsetMotion : MonoBehaviour
             {
                float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
                float iGyroMag = AvgGyroMag(_espGyroBuf, 0.7f);
+
+               float currentPitchOffset =
+                    Mathf.DeltaAngle(-_r, questPitch);
+
+               float currentRollOffset =
+                    Mathf.DeltaAngle(-_p, questRoll);
+
+               float pitchOffsetError = Mathf.Abs(
+                    Mathf.DeltaAngle(_trustedPitchOffset, currentPitchOffset)
+                );
+
+               float rollOffsetError = Mathf.Abs(
+                    Mathf.DeltaAngle(_trustedRollOffset, currentRollOffset)
+                );
+
+               bool mountingOrientationValid =
+                    !_haveTrustedOrientationOffset ||
+                    (pitchOffsetError <= attachmentPitchToleranceDeg &&
+                    rollOffsetError <= attachmentRollToleranceDeg);
+
+               if (mountingOrientationValid)
+                {
+                    _orientationValidTimer += gyroScoreEverySeconds;
+                }
+               else
+                {
+                    _orientationValidTimer = 0f;
+                }
+
+               Debug.Log(
+                    $"MOUNT CHECK | valid={mountingOrientationValid} " +
+                    $"pitchErr={pitchOffsetError:F1} " +
+                    $"rollErr={rollOffsetError:F1} " +
+                    $"timer={_orientationValidTimer:F1}");
+
+               if (_detachmentLockout &&
+                mountingOrientationValid &&
+                _orientationValidTimer >= attachmentConfirmSeconds)
+               {
+                _detachmentLockout = false;
+                _confidence = 0f;
+
+                Debug.Log(
+                    "DETACHMENT LOCKOUT CLEARED by stable pitch/roll alignment");
+                }
 
                float imuAge = Time.time - _lastImuGyroAt;
 
@@ -808,22 +885,28 @@ public class HeadsetMotion : MonoBehaviour
                $"qMag={qGyroMag:F2} iMag={iGyroMag:F2} " +
                $"conf={_confidence:F2}");
 
+               float detachRatio = qGyroMag / Mathf.Max(iGyroMag, 0.001f);
+
                bool detachedMotion =
-                qGyroMag >= gyroQuestActiveRadPerSec &&
-                iGyroMag < gyroImuActiveRadPerSec;
+                    qGyroMag >= gyroQuestActiveRadPerSec &&
+                    iGyroMag < gyroImuActiveRadPerSec &&
+                    detachRatio >= detachedRatioThreshold;
 
                if (_parityBuilt && detachedMotion)
                 {
                     _detachedTimer += gyroScoreEverySeconds;
 
-                    Debug.Log($"DETACH CHECK | timer={_detachedTimer:F1}s qMag={qGyroMag:F2} iMag={iGyroMag:F2}");
-
+                    Debug.Log(
+                            $"DETACH CHECK | timer={_detachedTimer:F1}s " +
+                            $"qMag={qGyroMag:F2} iMag={iGyroMag:F2} " +
+                            $"ratio={detachRatio:F2}");
                     if (_detachedTimer >= detachedLoseSeconds)
                     {
                         _confidence = 0f;
                         _parityBuilt = false;
                         _pendingMatchedUi = false;
                         _reauthRequired = true;
+                        _detachmentLockout = true;   // Block rebuilding until Reset is pressed after reattachment.
 
                         Debug.Log("HeadsetMotion: LOST by IMU detach");
 
@@ -842,9 +925,27 @@ public class HeadsetMotion : MonoBehaviour
 
                bool tooFastMotion = qGyroMag > 2.5f || iGyroMag > 2.5f;
 
+               
                if (tooFastMotion)
                 {
-                    Debug.Log("GYRO PARITY | too fast motion, holding confidence");
+                    // Fast motion should not automatically count as matched.
+                    // Use the gyro score to decide whether confidence should fall.
+                    if (_gyroScore < gyroLoseThreshold)
+                    {
+                        _confidence -= gyroMismatchStepDown;
+                        _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+
+                        Debug.Log(
+                            $"GYRO PARITY | fast mismatched motion, losing confidence. " +
+                            $"score={_gyroScore:F2} conf={_confidence:F2}");
+                    }
+                    else
+                    {
+                        Debug.Log(
+                            $"GYRO PARITY | fast motion but acceptable score. " +
+                            $"score={_gyroScore:F2}");
+                    }
+
                     _oneSidedBadCount = 0;
                 }
                else if (bothQuiet)
@@ -853,9 +954,9 @@ public class HeadsetMotion : MonoBehaviour
                     _lastBothQuietAt = Time.time;
                     _oneSidedBadCount = 0;
                 }
-                else if (oneSidedGyroMismatch)
+               else if (oneSidedGyroMismatch)
                 {
-                    bool justStartedMoving = Time.time - _lastBothQuietAt < 1.0f;
+                    bool justStartedMoving = Time.time - _lastBothQuietAt < 0.5f;
 
                     if (justStartedMoving)
                     {
@@ -866,7 +967,7 @@ public class HeadsetMotion : MonoBehaviour
                     {
                         _oneSidedBadCount++;
 
-                        if (_oneSidedBadCount >= 3)
+                        if (_oneSidedBadCount >= 2)
                         {
                             _confidence -= gyroMismatchStepDown;
                             _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
@@ -878,23 +979,61 @@ public class HeadsetMotion : MonoBehaviour
                 {
                     _oneSidedBadCount = 0;
 
-                    if (_gyroScore >= gyroBuildThreshold)
-                        _confidence += gyroStepUp;
-                    else if (_gyroScore < gyroLoseThreshold)
-                        _confidence -= gyroStepDown;
+                    if (_detachmentLockout)
+                    {
+                        // IMU was previously detached.
+                        // Do not allow parity to rebuild from matching hand movement.
+                        _confidence = 0f;
+
+                        Debug.Log(
+                            "GYRO PARITY | rebuild blocked because IMU detach lockout is active");
+                    }
+
+                    else
+                    {
+                        if (_gyroScore >= gyroBuildThreshold)
+                            _confidence += gyroStepUp;
+                        else if (_gyroScore < gyroLoseThreshold)
+                            _confidence -= gyroStepDown;
+                    }
                 }
 
                _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
                UpdateParityUIState();
 
-               if (!_parityBuilt && _confidence >= buildThreshold)
+               if (!_parityBuilt &&
+                   //!_detachmentLockout &&
+                   mountingOrientationValid &&
+                   _orientationValidTimer >= attachmentConfirmSeconds &&
+                   _confidence >= buildThreshold)
                {
                 bool wasReestablishing = _parityEverBuilt;
-
                 _confidence = buildThreshold;
+
+                // Save the mounting orientation only during the first trusted build.
+                if (!_haveTrustedOrientationOffset)
+                {
+                    _trustedPitchOffset =
+                        Mathf.DeltaAngle(-_r, questPitch);
+
+                    _trustedRollOffset =
+                        Mathf.DeltaAngle(-_p, questRoll);
+
+                    _haveTrustedOrientationOffset = true;
+
+                    Debug.Log(
+                        $"TRUSTED MOUNT OFFSET SAVED | " +
+                        $"pitch={_trustedPitchOffset:F1} " +
+                        $"roll={_trustedRollOffset:F1}");
+                }
+
                 _parityBuilt = true;
                 _parityEverBuilt = true;
                 _reauthRequired = false;
+
+                XRDeviceLogger.Instance?.SetParityEstablished(true);
+
+                Debug.Log("Parity established. XR data recording started.");
 
                 Debug.Log("HeadsetMotion: MATCHED by GYRO");
 
@@ -1123,6 +1262,16 @@ public class HeadsetMotion : MonoBehaviour
         _lastParityCos = 0f;
         _havePrevQuest = _havePrevImu = false;
         _imuYprUpdated = false;
+
+        // User should press Reset only after physically attaching the IMU again.
+       // _detachmentLockout = false;
+        _detachedTimer = 0f;
+
+        _haveTrustedOrientationOffset = false;
+        _trustedPitchOffset = 0f;
+        _trustedRollOffset = 0f;
+        _orientationValidTimer = 0f;
+
         if (parityText) parityText.text = "PARITY | —";
 
         // start new CSV logging session
