@@ -197,6 +197,21 @@ public class HeadsetMotion : MonoBehaviour
     float _currentQuestPitch = 0f;
     float _currentQuestRoll = 0f;
 
+    // Values exposed to XRDeviceLogger
+    public float CurrentQuestYaw => _currentQuestYaw;
+    public float CurrentQuestPitch => _currentQuestPitch;
+    public float CurrentQuestRoll => _currentQuestRoll;
+
+    public Quaternion CurrentQuestRotation { get; private set; }
+    public Vector3 CurrentQuestGyro { get; private set; }
+
+    public bool HasQuestRotation { get; private set; }
+    public bool HasQuestGyro { get; private set; }
+
+    public bool ParityBuilt => _parityBuilt;
+    public float CurrentConfidence => _confidence;
+    public float CurrentGyroScore => _gyroScore;
+
     // -------- Trial Timer --------
     float _trialStartTime = 0f;
     bool _trialRunning = false;
@@ -457,6 +472,9 @@ public class HeadsetMotion : MonoBehaviour
             _currentQuestYaw = questYaw;
             _currentQuestPitch = questPitch;
             _currentQuestRoll = questRoll;
+
+            CurrentQuestRotation = rel;
+            HasQuestRotation = true;
 
             if (rowQuestText)
             {
@@ -758,10 +776,18 @@ public class HeadsetMotion : MonoBehaviour
         // ---------------- QUEST gyro capture + score ----------------
         if (TryGetHmdAngularVelocity(out Vector3 questW))
         {
+            CurrentQuestGyro = questW;
+            HasQuestGyro = true;
+
             float t = Time.time;
             _questGyroBuf.Add(new Sample(t, questW));
             TrimOld(_questGyroBuf, t - gyroWindowSeconds);
+
             Debug.Log($"QUEST RAW GYRO = {questW.magnitude:F3}");
+        }
+        else
+        {
+            HasQuestGyro = false;
         }
 
         // Recompute score periodically
@@ -904,6 +930,7 @@ public class HeadsetMotion : MonoBehaviour
                     {
                         _confidence = 0f;
                         _parityBuilt = false;
+                        XRDeviceLogger.Instance?.SetParityEstablished(false);
                         _pendingMatchedUi = false;
                         _reauthRequired = true;
                         _detachmentLockout = true;   // Block rebuilding until Reset is pressed after reattachment.
@@ -1070,6 +1097,7 @@ public class HeadsetMotion : MonoBehaviour
                else if (_parityBuilt && _confidence <= loseThreshold)
                {
                 _parityBuilt = false;
+                XRDeviceLogger.Instance?.SetParityEstablished(false);
                 _pendingMatchedUi = false;
                 _reauthRequired = true;
 
@@ -1320,6 +1348,7 @@ public class HeadsetMotion : MonoBehaviour
         if (!authVerified)
         {
             _parityBuilt = false;
+            XRDeviceLogger.Instance?.SetParityEstablished(false);
             _confidence = 0f;
             _lastParityCos = 0f;
             _havePrevQuest = false;

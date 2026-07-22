@@ -14,6 +14,9 @@ public class XRDeviceLogger : MonoBehaviour
     [Tooltip("Enable or disable CSV recording.")]
     public bool enableLogging = true;
 
+    [Header("HeadsetMotion Source")]
+    public HeadsetMotion headsetMotion;
+
     [Tooltip("Samples collected per second. Use 50 to match your IMU frequency.")]
     [Range(1f, 120f)]
     public float sampleRateHz = 50f;
@@ -46,6 +49,9 @@ public class XRDeviceLogger : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        if (headsetMotion == null)
+            headsetMotion = FindObjectOfType<HeadsetMotion>();
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
@@ -143,6 +149,27 @@ public class XRDeviceLogger : MonoBehaviour
         sampleNumber++;
 
         DeviceData hmdData = ReadDeviceData(headset);
+
+        if (headsetMotion != null)
+        {
+            if (headsetMotion.HasQuestRotation)
+            {
+                hmdData.rotation =
+                    headsetMotion.CurrentQuestRotation;
+
+                hmdData.eulerAngles = new Vector3(
+                    headsetMotion.CurrentQuestPitch,
+                    headsetMotion.CurrentQuestYaw,
+                    headsetMotion.CurrentQuestRoll
+                );
+            }
+
+            if (headsetMotion.HasQuestGyro)
+            {
+                hmdData.angularVelocity =
+                    headsetMotion.CurrentQuestGyro;
+            }
+        }
         DeviceData leftData = ReadDeviceData(leftController);
         DeviceData rightData = ReadDeviceData(rightController);
 
