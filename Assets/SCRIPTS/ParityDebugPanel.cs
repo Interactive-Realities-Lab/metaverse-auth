@@ -349,6 +349,10 @@ public class ParityDebugPanel : MonoBehaviour
                 "<color=#55FF77>OFF</color>");
         }
 
+        _rightText.Append("IMU gyro packet age: ");
+        _rightText.AppendLine(
+            $"{headMotion.CurrentImuGyroAge:F2} s");
+
         if (!headMotion.ParityBuilt)
         {
             _rightText.AppendLine();

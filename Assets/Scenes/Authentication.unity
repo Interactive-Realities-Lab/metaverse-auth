@@ -28318,6 +28318,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6675491043827273688, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+      propertyPath: m_ManipulateAttachTransform
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6675491043827273688, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
       propertyPath: m_PlayHapticsOnHoverEntered
       value: 0
       objectReference: {fileID: 0}
@@ -28563,6 +28567,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9146015503685400394, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
       propertyPath: m_PlayHapticsOnHoverExited
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9146015503685400394, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+      propertyPath: m_ManipulateAttachTransform
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9146015503685400394, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
@@ -48995,8 +49003,8 @@ MonoBehaviour:
   oneSidedMotionDeg: 4
   oneSidedBadChecksToPunish: 3
   oneSidedStepDown: 0.03
-  minMotionRatio: 0.45
-  maxMotionRatio: 2.5
+  minMotionRatio: 0.75
+  maxMotionRatio: 1.35
   attachmentPitchToleranceDeg: 10
   attachmentRollToleranceDeg: 10
   attachmentConfirmSeconds: 2
@@ -49033,7 +49041,7 @@ MonoBehaviour:
   gyroLoseThreshold: 0.3
   gyroStepUp: 0.15
   gyroStepDown: 0.05
-  imuGyroTimeoutSeconds: 1
+  imuGyroTimeoutSeconds: 2
   gyroQuestActiveRadPerSec: 0.1
   gyroImuActiveRadPerSec: 0.1
   gyroMismatchStepDown: 0.1

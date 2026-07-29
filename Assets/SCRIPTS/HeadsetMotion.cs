@@ -1024,7 +1024,7 @@ public class HeadsetMotion : MonoBehaviour
 
                     _pendingMatchedUi = false;
                     _reauthRequired = true;
-                    _detachmentLockout = true;
+                    //_detachmentLockout = true;
 
                     _lastParityEvent = "PARITY LOST BY IMU DISCONNECTION";
 
@@ -1082,22 +1082,26 @@ public class HeadsetMotion : MonoBehaviour
 
                if (!_parityBuilt)
                {
-                    if (mountingOrientationValid)
+                    bool attachmentEvidenceValid =
+                        mountingOrientationValid &&
+                        _currentMotionRatio >= minMotionRatio &&
+                        _currentMotionRatio <= maxMotionRatio;
+
+                    if (attachmentEvidenceValid)
                     {
                         _orientationValidTimer += gyroScoreEverySeconds;
                     }
                     else
                     {
-                        _orientationValidTimer -= gyroScoreEverySeconds * 2f;
-                        _orientationValidTimer =
-                            Mathf.Max(0f, _orientationValidTimer);
+                        _orientationValidTimer = 0f;
                     }
-                }
-                else
+               }
+
+               else
                 {
                     _orientationValidTimer = 0f;
                 }
-
+                
                Debug.Log(
                     $"MOUNT CHECK | valid={mountingOrientationValid} " +
                     $"pitchErr={pitchOffsetError:F1} " +
@@ -1298,10 +1302,26 @@ public class HeadsetMotion : MonoBehaviour
                _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
                UpdateParityUIState();
 
+            //    if ( !_parityBuilt &&
+            //         !_detachmentLockout &&
+            //         mountingOrientationValid &&
+            //         _orientationValidTimer >= attachmentConfirmSeconds &&
+            //         _confidence >= buildThreshold)
+
+               bool motionRatioValid =
+                    _currentMotionRatio >= minMotionRatio &&
+                    _currentMotionRatio <= maxMotionRatio;
+
+               bool attachmentReady =
+                    !_detachmentLockout ||
+                    (
+                        mountingOrientationValid &&
+                        motionRatioValid &&
+                        _orientationValidTimer >= attachmentConfirmSeconds
+                    );
+
                if (!_parityBuilt &&
-                   !_detachmentLockout &&
-                   mountingOrientationValid &&
-                   _orientationValidTimer >= attachmentConfirmSeconds &&
+                   attachmentReady &&
                    _confidence >= buildThreshold)
                {
                 bool wasReestablishing = _parityEverBuilt;
