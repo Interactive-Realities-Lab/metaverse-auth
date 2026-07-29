@@ -51,7 +51,7 @@ public class HeadsetMotion : MonoBehaviour
     [Header("Pitch/Roll Attachment Check")]
     public float attachmentPitchToleranceDeg = 8f;
     public float attachmentRollToleranceDeg = 8f;
-    public float attachmentConfirmSeconds = 2f;
+    public float attachmentConfirmSeconds = 0.75f;
 
     private float _trustedPitchOffset = 0f;
     private float _trustedRollOffset = 0f;
@@ -174,8 +174,8 @@ public class HeadsetMotion : MonoBehaviour
 
     [Header("IMU Freshness")]
     public float imuGyroTimeoutSeconds = 0.75f;
-    public float gyroQuestActiveRadPerSec = 8f;
-    public float gyroImuActiveRadPerSec = 4f;
+    public float gyroQuestActiveRadPerSec = 0.1f;
+    public float gyroImuActiveRadPerSec = 0.1f;
     public float gyroMismatchStepDown = 0.08f;
 
     [Header("IMU Detach Detection")]
@@ -202,6 +202,8 @@ public class HeadsetMotion : MonoBehaviour
     public float CurrentQuestPitch => _currentQuestPitch;
     public float CurrentQuestRoll => _currentQuestRoll;
 
+    // ============================================================
+
     public Quaternion CurrentQuestRotation { get; private set; }
     public Vector3 CurrentQuestGyro { get; private set; }
 
@@ -211,6 +213,166 @@ public class HeadsetMotion : MonoBehaviour
     public bool ParityBuilt => _parityBuilt;
     public float CurrentConfidence => _confidence;
     public float CurrentGyroScore => _gyroScore;
+
+    // ============================================================
+    // Values exposed to the live debug panel
+    // ============================================================
+
+    // IMU mapped orientation
+    private float _currentImuYaw;
+    private float _currentImuPitch;
+    private float _currentImuRoll;
+
+    // Difference between Quest and IMU orientation
+    private float _currentDeltaYaw;
+    private float _currentDeltaPitch;
+    private float _currentDeltaRoll;
+
+    // Averaged gyro values used by parity logic
+    private float _currentQuestGyroMagnitude;
+    private float _currentImuGyroMagnitude;
+    private float _currentMotionRatio;
+
+    // Current decisions
+    private bool _currentQuestActive;
+    private bool _currentImuActive;
+    private bool _currentBothQuiet;
+    private bool _currentDetachedMotion;
+    private bool _currentMountingOrientationValid;
+    private bool _currentImuGyroFresh;
+
+    // Mounting errors
+    private float _currentPitchOffsetError;
+    private float _currentRollOffsetError;
+
+    // Last important parity transition
+    private string _lastParityEvent = "Waiting";
+    private string _lastParityReason = "Parity has not been evaluated yet";
+    private string _lastParityEventTime = "--:--:--";
+
+
+    // ---------------- IMU orientation ----------------
+
+    public bool HasImuOrientation =>
+        _haveP && _haveR && _haveY;
+
+    public float CurrentImuRawPitch => _p;
+    public float CurrentImuRawRoll => _r;
+    public float CurrentImuRawYaw => _y;
+
+    public float CurrentImuYaw => _currentImuYaw;
+    public float CurrentImuPitch => _currentImuPitch;
+    public float CurrentImuRoll => _currentImuRoll;
+
+
+    // ---------------- Orientation differences ----------------
+
+    public float CurrentDeltaYaw => _currentDeltaYaw;
+    public float CurrentDeltaPitch => _currentDeltaPitch;
+    public float CurrentDeltaRoll => _currentDeltaRoll;
+
+
+    // ---------------- IMU gyro ----------------
+
+    public bool HasImuGyro => _haveG;
+    public Vector3 CurrentImuGyro => _espGyro;
+
+    public float CurrentQuestGyroMagnitude =>
+        _currentQuestGyroMagnitude;
+
+    public float CurrentImuGyroMagnitude =>
+        _currentImuGyroMagnitude;
+
+
+    // ---------------- Gyro comparison ----------------
+
+    public float CurrentGyroScoreX => _gyroScoreX;
+    public float CurrentGyroScoreY => _gyroScoreY;
+    public float CurrentGyroScoreZ => _gyroScoreZ;
+
+    public float CurrentMotionRatio => _currentMotionRatio;
+
+    public bool CurrentQuestActive => _currentQuestActive;
+    public bool CurrentImuActive => _currentImuActive;
+    public bool CurrentBothQuiet => _currentBothQuiet;
+    public bool CurrentDetachedMotion => _currentDetachedMotion;
+    public bool CurrentImuGyroFresh => _currentImuGyroFresh;
+
+
+    // ---------------- Attachment check ----------------
+
+    public bool CurrentMountingOrientationValid =>
+        _currentMountingOrientationValid;
+
+    public float CurrentPitchOffsetError =>
+        _currentPitchOffsetError;
+
+    public float CurrentRollOffsetError =>
+        _currentRollOffsetError;
+
+    public float CurrentOrientationValidTimer =>
+        _orientationValidTimer;
+
+    public float CurrentDetachTimer =>
+        _detachedTimer;
+
+    public bool DetachmentLockout =>
+        _detachmentLockout;
+
+    public int CurrentOneSidedBadCount =>
+        _oneSidedBadCount;
+
+
+    // ---------------- Parity information ----------------
+
+    public MotionState CurrentMotionState => _state;
+    public bool ParityEverBuilt => _parityEverBuilt;
+    public bool ReauthRequired => _reauthRequired;
+
+    public float CurrentLastParityCos => _lastParityCos;
+
+    public bool ParityLostCountdownRunning =>
+        _parityLostCountdownRunning;
+
+    public float CurrentParityLostTimer =>
+        _parityLostTimer;
+
+    public string LastParityEvent =>
+        _lastParityEvent;
+
+    public string LastParityReason =>
+        _lastParityReason;
+
+    public string LastParityEventTime =>
+        _lastParityEventTime;
+
+    public string CurrentParityLostReason => 
+        _lastParityReason;
+
+
+    // ---------------- Sensor packet ages ----------------
+
+    public float CurrentImuGyroAge
+    {
+        get
+        {
+            if (_lastImuGyroAt < 0f)
+                return -1f;
+
+            return Time.time - _lastImuGyroAt;
+        }
+    }
+
+    public float CurrentImuOrientationAge
+    {
+        get
+        {
+            if (_lastImuYprAt < 0f)
+                return -1f;
+
+            return Time.time - _lastImuYprAt;
+        }
+    }
 
     // -------- Trial Timer --------
     float _trialStartTime = 0f;
@@ -374,6 +536,14 @@ public class HeadsetMotion : MonoBehaviour
 
     void HandleParityLostTimeout()
     {
+        _lastParityEvent = "REAUTHENTICATION TIMEOUT";
+        _lastParityReason =
+            $"Parity was not regained within " +
+            $"{parityLostTimeoutSeconds:F1} seconds";
+
+        _lastParityEventTime =
+            DateTime.Now.ToString("HH:mm:ss.fff");
+                
         Debug.Log("Parity lost timeout reached. Returning to login panel.");
 
         if (parityEventLogger != null)
@@ -391,7 +561,8 @@ public class HeadsetMotion : MonoBehaviour
             imuYawQ, imuPitchQ, imuRollQ,
             _confidence,
             _lastParityCos,
-            _gyroScore
+            _gyroScore,
+            _lastParityReason
           );
         }
 
@@ -483,12 +654,35 @@ public class HeadsetMotion : MonoBehaviour
             }
         }
 
+        else
+        {
+            HasQuestRotation = false;
+        }
+
         // ----- IMU row -----
         string ff = $"F{Mathf.Clamp(decimals, 0, 5)}";
 
         float imuRawPitch = _p;
         float imuRawRoll = _r;
         float imuRawYaw = _y;
+
+        // Same mapping currently used by CSV and parity event logging
+        _currentImuYaw = -_y;
+        _currentImuPitch = -_r;
+        _currentImuRoll = -_p;
+
+        // Current Quest versus IMU orientation differences
+        _currentDeltaYaw = haveQuest
+            ? Mathf.DeltaAngle(_currentImuYaw, questYaw)
+            : 0f;
+
+        _currentDeltaPitch = haveQuest
+            ? Mathf.DeltaAngle(_currentImuPitch, questPitch)
+            : 0f;
+
+        _currentDeltaRoll = haveQuest
+            ? Mathf.DeltaAngle(_currentImuRoll, questRoll)
+            : 0f;
 
         // -------- mapping ---------
         // QuestYaw   <- -IMU yaw
@@ -815,28 +1009,52 @@ public class HeadsetMotion : MonoBehaviour
         //     }    
            
             bool imuGyroFresh = Time.time - _lastImuGyroAt <= imuGyroTimeoutSeconds;
+            _currentImuGyroFresh = imuGyroFresh;
 
             if (!imuGyroFresh)
             {
-                float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
+                float imuAge = Time.time - _lastImuGyroAt;
 
-                if (qGyroMag < gyroQuestActiveRadPerSec)
+                if (_parityBuilt)
                 {
-                    Debug.Log("IMU stale but Quest quiet, holding confidence");
-                    return;
+                    _confidence = 0f;
+                    _parityBuilt = false;
+
+                    XRDeviceLogger.Instance?.SetParityEstablished(false);
+
+                    _pendingMatchedUi = false;
+                    _reauthRequired = true;
+                    _detachmentLockout = true;
+
+                    _lastParityEvent = "PARITY LOST BY IMU DISCONNECTION";
+
+                    _lastParityReason =
+                        $"No IMU gyro packet received for {imuAge:F2} seconds";
+
+                    _lastParityEventTime =
+                        DateTime.Now.ToString("HH:mm:ss.fff");
+
+                    Debug.Log(
+                        $"HeadsetMotion: LOST by stale IMU data. Age={imuAge:F2}s");
+
+                    if (SceneFlow.Instance != null)
+                        SceneFlow.Instance.ShowContinuousAuthUI();
+                    else if (uiPanelActions != null)
+                        uiPanelActions.ShowContinuousAuth();
+
+                    UpdateParityUIState();
                 }
 
-                _confidence -= gyroStepDown * 3f;
-                _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
-
-                Debug.Log($"IMU gyro stale while Quest moving. Losing confidence. conf={_confidence:F2}");
-                UpdateParityUIState();
+                return;
             }
 
             else
             {
                float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
                float iGyroMag = AvgGyroMag(_espGyroBuf, 0.7f);
+
+               _currentQuestGyroMagnitude = qGyroMag;
+               _currentImuGyroMagnitude = iGyroMag;
 
                float currentPitchOffset =
                     Mathf.DeltaAngle(-_r, questPitch);
@@ -857,11 +1075,25 @@ public class HeadsetMotion : MonoBehaviour
                     (pitchOffsetError <= attachmentPitchToleranceDeg &&
                     rollOffsetError <= attachmentRollToleranceDeg);
 
-               if (mountingOrientationValid)
-                {
-                    _orientationValidTimer += gyroScoreEverySeconds;
+               _currentPitchOffsetError = pitchOffsetError;
+               _currentRollOffsetError = rollOffsetError;
+               _currentMountingOrientationValid =
+                    mountingOrientationValid;
+
+               if (!_parityBuilt)
+               {
+                    if (mountingOrientationValid)
+                    {
+                        _orientationValidTimer += gyroScoreEverySeconds;
+                    }
+                    else
+                    {
+                        _orientationValidTimer -= gyroScoreEverySeconds * 2f;
+                        _orientationValidTimer =
+                            Mathf.Max(0f, _orientationValidTimer);
+                    }
                 }
-               else
+                else
                 {
                     _orientationValidTimer = 0f;
                 }
@@ -894,6 +1126,9 @@ public class HeadsetMotion : MonoBehaviour
                bool questActive = qGyroMag >= gyroQuestActiveRadPerSec;
                bool imuActive = iGyroMag >= gyroImuActiveRadPerSec;
 
+               _currentQuestActive = questActive;
+               _currentImuActive = imuActive;
+
                Debug.Log(
                 $"ACTIVE? quest={questActive} imu={imuActive} " +
                 $"qMag={qGyroMag:F2} iMag={iGyroMag:F2}");
@@ -901,6 +1136,8 @@ public class HeadsetMotion : MonoBehaviour
                bool bothQuiet =
                 qGyroMag < gyroQuestActiveRadPerSec &&
                 iGyroMag < gyroImuActiveRadPerSec;
+
+               _currentBothQuiet = bothQuiet;
 
                bool oneSidedGyroMismatch =
                     qGyroMag > 0.15f &&
@@ -917,6 +1154,9 @@ public class HeadsetMotion : MonoBehaviour
                     qGyroMag >= gyroQuestActiveRadPerSec &&
                     iGyroMag < gyroImuActiveRadPerSec &&
                     detachRatio >= detachedRatioThreshold;
+
+               _currentMotionRatio = detachRatio;
+               _currentDetachedMotion = detachedMotion;
 
                if (_parityBuilt && detachedMotion)
                 {
@@ -936,6 +1176,17 @@ public class HeadsetMotion : MonoBehaviour
                         _detachmentLockout = true;   // Block rebuilding until Reset is pressed after reattachment.
 
                         Debug.Log("HeadsetMotion: LOST by IMU detach");
+
+                        _lastParityEvent = "PARITY LOST BY IMU DETACH";
+                        _lastParityReason =
+                            "IMU detached from headset\n" +
+                            $"Detach timer={_detachedTimer:F2}s, " +
+                            $"Quest magnitude={qGyroMag:F3}, " +
+                            $"IMU magnitude={iGyroMag:F3}, " +
+                            $"ratio={detachRatio:F3}";
+
+                        _lastParityEventTime =
+                            DateTime.Now.ToString("HH:mm:ss.fff");
 
                         if (SceneFlow.Instance != null)
                             SceneFlow.Instance.ShowContinuousAuthUI();
@@ -1019,9 +1270,28 @@ public class HeadsetMotion : MonoBehaviour
                     else
                     {
                         if (_gyroScore >= gyroBuildThreshold)
+                        {
                             _confidence += gyroStepUp;
+                        }
                         else if (_gyroScore < gyroLoseThreshold)
+                        {
                             _confidence -= gyroStepDown;
+                        }
+                        else
+                        {
+                            // The score is between the lose and build thresholds.
+                            if (!_parityBuilt)
+                            {
+                                // Do not let uncertain motion preserve partially built
+                                // confidence indefinitely.
+                                _confidence -= gyroStepDown * 0.25f;
+                            }
+                            else
+                            {
+                                // Once parity is built, hold confidence in the middle
+                                // range to avoid unnecessary parity loss.
+                            }
+                        }
                     }
                 }
 
@@ -1029,7 +1299,7 @@ public class HeadsetMotion : MonoBehaviour
                UpdateParityUIState();
 
                if (!_parityBuilt &&
-                   //!_detachmentLockout &&
+                   !_detachmentLockout &&
                    mountingOrientationValid &&
                    _orientationValidTimer >= attachmentConfirmSeconds &&
                    _confidence >= buildThreshold)
@@ -1064,6 +1334,15 @@ public class HeadsetMotion : MonoBehaviour
 
                 Debug.Log("HeadsetMotion: MATCHED by GYRO");
 
+                _lastParityEvent = "PARITY ESTABLISHED";
+                _lastParityReason =
+                    $"Gyro score {_gyroScore:F3}, " +
+                    $"confidence {_confidence:F3}, " +
+                    $"mount valid={mountingOrientationValid}";
+
+                _lastParityEventTime =
+                    DateTime.Now.ToString("HH:mm:ss.fff");
+
                 if (parityEventLogger != null)
                 {
                     float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
@@ -1079,7 +1358,8 @@ public class HeadsetMotion : MonoBehaviour
                         imuYawQ, imuPitchQ, imuRollQ,
                         _confidence,
                         _lastParityCos,
-                        _gyroScore
+                        _gyroScore,
+                        _lastParityReason
                     );
                 }
 
@@ -1103,6 +1383,15 @@ public class HeadsetMotion : MonoBehaviour
 
                 Debug.Log("HeadsetMotion: LOST by GYRO");
 
+                _lastParityEvent = "PARITY LOST";
+                _lastParityReason =
+                    $"Confidence {_confidence:F3} reached " +
+                    $"lose threshold {loseThreshold:F3}; " +
+                    $"gyro score={_gyroScore:F3}";
+
+                _lastParityEventTime =
+                    DateTime.Now.ToString("HH:mm:ss.fff");
+
                 if (parityEventLogger != null)
                 {
                     float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
@@ -1118,7 +1407,8 @@ public class HeadsetMotion : MonoBehaviour
                         imuYawQ, imuPitchQ, imuRollQ,
                         _confidence,
                         _lastParityCos,
-                        _gyroScore
+                        _gyroScore,
+                        _lastParityReason
                     );
                 }
 
@@ -1291,14 +1581,21 @@ public class HeadsetMotion : MonoBehaviour
         _havePrevQuest = _havePrevImu = false;
         _imuYprUpdated = false;
 
-        // User should press Reset only after physically attaching the IMU again.
-       // _detachmentLockout = false;
+        // User should press Reset only after physically attaching the IMU again. // DO not have a reset button now
+        //_detachmentLockout = false; 
         _detachedTimer = 0f;
 
         _haveTrustedOrientationOffset = false;
         _trustedPitchOffset = 0f;
         _trustedRollOffset = 0f;
         _orientationValidTimer = 0f;
+
+        _lastParityEvent = "RESET PRESSED";
+        _lastParityReason =
+                    "Waiting for Quest and IMU motion comparison";
+
+        _lastParityEventTime =
+                    DateTime.Now.ToString("HH:mm:ss.fff");
 
         if (parityText) parityText.text = "PARITY | —";
 

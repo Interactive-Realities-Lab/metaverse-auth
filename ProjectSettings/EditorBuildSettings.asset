@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Shooting.unity
     guid: 0f4e9895f822bf84fb86ae2593bbad49
+  - enabled: 1
+    path: Assets/Scenes/Debug.unity
+    guid: b3bbffe03e3fb084e8e7d4deaf8dc24b
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 1c93c2dd2bafa6b4796d7c43dfde8b1a, type: 2}
     Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: c08c6878124cc1d47af33d9cbf78bf80, type: 2}

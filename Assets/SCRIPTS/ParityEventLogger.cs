@@ -39,6 +39,8 @@ public class ParityEventLogger : MonoBehaviour
     float _nextHeartbeatAt = 0f;
     string _currentEventState = "NONE"; // "BUILT" or "LOST" (last transition type)
 
+    private string _currentLossNote = "";
+
     public void StartLogging()
     {
         if (!enableLogging) return;
@@ -112,6 +114,12 @@ public class ParityEventLogger : MonoBehaviour
             _currentEventState = "BUILT";
         else if (eventType == "LOST" || eventType == "REAUTH_TIMEOUT")
             _currentEventState = "LOST";
+
+        if (eventType == "LOST" || eventType == "REAUTH_TIMEOUT")
+        _currentLossNote = note;
+        
+        else if (eventType == "BUILT")
+        _currentLossNote = "";
     }
 
     /// <summary>
@@ -136,7 +144,7 @@ public class ParityEventLogger : MonoBehaviour
 
         WriteRow("STILL_LOST", trialTime, questYaw, questPitch, questRoll,
                  imuYawQ, imuPitchQ, imuRollQ, confidence, parityCos, gyroScore,
-                 sinceLast, "");
+                 sinceLast, _currentLossNote);
     }
 
     void WriteRow(
@@ -167,7 +175,7 @@ public class ParityEventLogger : MonoBehaviour
         _sb.Append(parityCos.ToString("F2")).Append(',');
         _sb.Append(gyroScore.ToString("F2")).Append(',');
 
-        _sb.Append(note);
+        _sb.Append(EscapeCsv(note));
 
         _csv.WriteLine(_sb.ToString());
         _csv.Flush(); // events are rare, flush immediately so nothing is lost on crash
@@ -176,5 +184,15 @@ public class ParityEventLogger : MonoBehaviour
     void OnApplicationQuit()
     {
         StopLogging();
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return "";
+
+        value = value.Replace("\"", "\"\"");
+
+        return $"\"{value}\"";
     }
 }
