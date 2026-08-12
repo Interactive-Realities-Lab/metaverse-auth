@@ -16,8 +16,8 @@ public class ParityDebugPanel : MonoBehaviour
     [SerializeField] private HeadsetMotion headMotion;
 
     [Header("Text Output")]
-    [Tooltip("The TextMeshPro UI text used for the complete debug display.")]
     [SerializeField] private TMP_Text leftDebugText;
+    [SerializeField] private TMP_Text frontDebugText;
     [SerializeField] private TMP_Text rightDebugText;
 
     [Header("Refresh Rate")]
@@ -31,10 +31,13 @@ public class ParityDebugPanel : MonoBehaviour
     private float _nextRefreshTime;
 
     private readonly StringBuilder _leftText =
-       new StringBuilder(1800);
+        new StringBuilder(1800);
+
+    private readonly StringBuilder _frontText =
+        new StringBuilder(1200);
 
     private readonly StringBuilder _rightText =
-       new StringBuilder(1800);
+        new StringBuilder(1800);
 
     private bool IsDebugSceneLoaded()
     {
@@ -105,14 +108,19 @@ public class ParityDebugPanel : MonoBehaviour
 
     private void RefreshDebugPanel()
     {
-        if (leftDebugText == null || rightDebugText == null)
+        if (leftDebugText == null ||
+            frontDebugText == null ||
+            rightDebugText == null)
             return;
 
         if (headMotion == null)
         {
             leftDebugText.text =
-                "<b>PARITY LIVE DEBUG</b>\n\n" +
+                "<b>PARITY DEBUG</b>\n\n" +
                 "<color=#FF7777>HeadsetMotion not found</color>";
+
+            frontDebugText.text =
+                "<color=#FF7777>No data</color>";
 
             rightDebugText.text =
                 "Make sure the Authentication scene is loaded.";
@@ -121,29 +129,40 @@ public class ParityDebugPanel : MonoBehaviour
         }
 
         _leftText.Clear();
+        _frontText.Clear();
         _rightText.Clear();
 
-        AddLeftColumn();
-        AddRightColumn();
+        AddLeftConsole();
+        AddFrontConsole();
+        AddRightConsole();
 
         leftDebugText.text = _leftText.ToString();
+        frontDebugText.text = _frontText.ToString();
         rightDebugText.text = _rightText.ToString();
     }
 
-    private void AddLeftColumn()
-    {
-        _leftText.AppendLine("<b>PARITY STATUS</b>");
-
+    private void AddLeftConsole()
+    {       
         _leftText.Append("Status: ");
         _leftText.AppendLine(GetParityStatusText());
 
         _leftText.Append("Confidence: ");
+
         _leftText.Append(
-            headMotion.CurrentConfidence.ToString("F2"));
+            FixedNumber(
+                headMotion.CurrentConfidence,
+                2,
+                5));
 
         _leftText.Append(" / ");
-        _leftText.AppendLine(
-            headMotion.buildThreshold.ToString("F2"));
+
+        _leftText.Append(
+            FixedNumber(
+                headMotion.buildThreshold,
+                2,
+                5));
+
+        _leftText.AppendLine();
 
         float progress =
             headMotion.buildThreshold > 0f
@@ -171,22 +190,36 @@ public class ParityDebugPanel : MonoBehaviour
 
         if (headMotion.HasQuestRotation)
         {
-            _leftText.Append("Yaw: ");
-            _leftText.Append(headMotion.CurrentQuestYaw.ToString("F1"));
+            _leftText.Append("Yaw:");
+            _leftText.Append(
+                FixedNumber(
+                    headMotion.CurrentQuestYaw,
+                    1,
+                    6));
             _leftText.Append("°  ");
 
-            _leftText.Append("Pitch: ");
-            _leftText.Append(headMotion.CurrentQuestPitch.ToString("F1"));
+            _leftText.Append("Pitch:");
+            _leftText.Append(
+                FixedNumber(
+                    headMotion.CurrentQuestPitch,
+                    1,
+                    6));
             _leftText.Append("°  ");
 
-            _leftText.Append("Roll: ");
-            _leftText.Append(headMotion.CurrentQuestRoll.ToString("F1"));
+            _leftText.Append("Roll:");
+            _leftText.Append(
+                FixedNumber(
+                    headMotion.CurrentQuestRoll,
+                    1,
+                    6));
             _leftText.AppendLine("°");
         }
         else
         {
             _leftText.AppendLine(
-                "<color=#FF7777>Quest orientation unavailable</color>");
+                "<color=#FF7777>" +
+                "Quest orientation unavailable" +
+                "</color>");
         }
 
         if (headMotion.HasQuestGyro)
@@ -203,36 +236,43 @@ public class ParityDebugPanel : MonoBehaviour
                 headMotion.CurrentQuestGyroMagnitude,
                 " rad/s",
                 3);
-        }
-
-        _leftText.Append("Quest active: ");
-        _leftText.AppendLine(
-            YesNo(headMotion.CurrentQuestActive));
+        } 
             
         _leftText.AppendLine();
         _leftText.AppendLine("<b>IMU SENSOR</b>");
 
-       if (headMotion.HasImuOrientation)
+        if (headMotion.HasImuOrientation)
         {
-            _leftText.Append("Yaw: ");
+            _leftText.Append("Yaw:");
             _leftText.Append(
-                headMotion.CurrentImuYaw.ToString("F1"));
+                FixedNumber(
+                    headMotion.CurrentImuYaw,
+                    1,
+                    6));
             _leftText.Append("°  ");
 
-            _leftText.Append("Pitch: ");
+            _leftText.Append("Pitch:");
             _leftText.Append(
-                headMotion.CurrentImuPitch.ToString("F1"));
+                FixedNumber(
+                    headMotion.CurrentImuPitch,
+                    1,
+                    6));
             _leftText.Append("°  ");
 
-            _leftText.Append("Roll: ");
+            _leftText.Append("Roll:");
             _leftText.Append(
-                headMotion.CurrentImuRoll.ToString("F1"));
+                FixedNumber(
+                    headMotion.CurrentImuRoll,
+                    1,
+                    6));
             _leftText.AppendLine("°");
         }
         else
         {
             _leftText.AppendLine(
-                "<color=#FF7777>IMU orientation unavailable</color>");
+                "<color=#FF7777>" +
+                "IMU orientation unavailable" +
+                "</color>");
         }
 
         if (headMotion.HasImuGyro)
@@ -250,62 +290,83 @@ public class ParityDebugPanel : MonoBehaviour
                 " rad/s",
                 3);
         }
-
-        _leftText.Append("IMU active: ");
-        _leftText.AppendLine(
-            YesNo(headMotion.CurrentImuActive));
     }
 
-    private void AddRightColumn()
+    private void AddFrontConsole()
     {
-        _rightText.AppendLine(
-            "<b>QUEST / IMU COMPARISON</b>");
-
-        AddRightValue(
+        AddFrontValue(
             "Delta yaw",
             headMotion.CurrentDeltaYaw,
             "°",
             1);
 
-        AddRightValue(
+        AddFrontValue(
             "Delta pitch",
             headMotion.CurrentDeltaPitch,
             "°",
             1);
 
-        AddRightValue(
+        AddFrontValue(
             "Delta roll",
             headMotion.CurrentDeltaRoll,
             "°",
             1);
 
-        _rightText.Append("Gyro score: ");
-        _rightText.AppendLine(
+        _frontText.AppendLine();
+
+        _frontText.Append("Gyro score: ");
+        _frontText.AppendLine(
             ScoreText(headMotion.CurrentGyroScore));
 
-        _rightText.Append("Score X/Y/Z: ");
-        _rightText.Append(
-            headMotion.CurrentGyroScoreX.ToString("F2"));
-        _rightText.Append(" / ");
-        _rightText.Append(
-            headMotion.CurrentGyroScoreY.ToString("F2"));
-        _rightText.Append(" / ");
-        _rightText.AppendLine(
-            headMotion.CurrentGyroScoreZ.ToString("F2"));
+        _frontText.Append("Score X/Y/Z: ");
 
-        AddRightValue(
+        _frontText.Append(
+            FixedNumber(
+                headMotion.CurrentGyroScoreX,
+                2,
+                6));
+
+        _frontText.Append(" / ");
+
+        _frontText.Append(
+            FixedNumber(
+                headMotion.CurrentGyroScoreY,
+                2,
+                6));
+
+        _frontText.Append(" / ");
+
+        _frontText.Append(
+            FixedNumber(
+                headMotion.CurrentGyroScoreZ,
+                2,
+                6));
+
+        _frontText.AppendLine();
+
+        AddFrontValue(
             "Motion ratio",
             headMotion.CurrentMotionRatio,
             "",
             3);
 
-        _rightText.Append("Both quiet: ");
-        _rightText.AppendLine(
+        _frontText.Append("Both quiet: ");
+        _frontText.AppendLine(
             YesNo(headMotion.CurrentBothQuiet));
 
-        _rightText.AppendLine();
-        _rightText.AppendLine("<b>ATTACHMENT CHECK</b>");
+        _frontText.AppendLine();
 
+        _frontText.Append("Quest active: ");
+        _frontText.AppendLine(
+            YesNo(headMotion.CurrentQuestActive));
+
+        _frontText.Append("IMU active: ");
+        _frontText.AppendLine(
+            YesNo(headMotion.CurrentImuActive));
+    }
+
+    private void AddRightConsole()
+    {  
         _rightText.Append("Mount orientation valid: ");
         _rightText.AppendLine(
             YesNo(
@@ -323,6 +384,8 @@ public class ParityDebugPanel : MonoBehaviour
             "°",
             1);
 
+        _rightText.AppendLine();
+
         _rightText.Append("Detached motion: ");
 
         if (headMotion.CurrentDetachedMotion)
@@ -334,7 +397,13 @@ public class ParityDebugPanel : MonoBehaviour
         {
             _rightText.AppendLine(
                 "<color=#55FF77>NO</color>");
-        }   
+        }
+
+        AddRightValue(
+            "Detach timer",
+            headMotion.CurrentDetachTimer,
+            " s",
+            2);
 
         _rightText.Append("Detachment lockout: ");
 
@@ -349,19 +418,50 @@ public class ParityDebugPanel : MonoBehaviour
                 "<color=#55FF77>OFF</color>");
         }
 
-        _rightText.Append("IMU gyro packet age: ");
-        _rightText.AppendLine(
-            $"{headMotion.CurrentImuGyroAge:F2} s");
+        _rightText.AppendLine();
 
+        _rightText.AppendLine(
+            "<b>SENSOR CONNECTION</b>");
+
+        _rightText.Append("IMU gyro packet age: ");
+
+        _rightText.Append(
+            FixedNumber(
+                headMotion.CurrentImuGyroAge,
+                2,
+                6));
+
+        _rightText.AppendLine(" s");
+
+        _rightText.Append("IMU gyro fresh: ");
+        _rightText.AppendLine(
+            YesNo(headMotion.CurrentImuGyroFresh));
+
+        // Only show these when parity is lost
         if (!headMotion.ParityBuilt)
         {
             _rightText.AppendLine();
-            _rightText.AppendLine("<b>LAST LOSS REASON</b>");
-            _rightText.AppendLine(headMotion.CurrentParityLostReason);
+            _rightText.AppendLine(
+                "<b>LAST LOSS REASON</b>");
+
+            _rightText.AppendLine(
+                headMotion.CurrentParityLostReason);
 
             _rightText.AppendLine();
-            _rightText.AppendLine("<b>CURRENT STATUS</b>");
-            _rightText.AppendLine(GetCurrentReestablishReason());
+            _rightText.AppendLine(
+                "<b>CURRENT STATUS</b>");
+
+            _rightText.AppendLine(
+                GetCurrentReestablishReason());
+        }
+        else
+        {
+            _rightText.AppendLine();
+            _rightText.AppendLine(
+                "<b>CURRENT STATUS</b>");
+
+            _rightText.AppendLine(
+                "<color=#55FF77>Parity is established</color>");
         }
     }
     
@@ -377,8 +477,21 @@ public class ParityDebugPanel : MonoBehaviour
         _leftText.Append(label);
         _leftText.Append(": ");
         _leftText.Append(
-            value.ToString($"F{decimalPlaces}"));
+            FixedNumber(value, decimalPlaces));
         _leftText.AppendLine(unit);
+    }
+
+    private void AddFrontValue(
+        string label,
+        float value,
+        string unit,
+        int decimalPlaces)
+    {
+        _frontText.Append(label);
+        _frontText.Append(": ");
+        _frontText.Append(
+            FixedNumber(value, decimalPlaces));
+        _frontText.AppendLine(unit);
     }
 
     private void AddRightValue(
@@ -390,7 +503,7 @@ public class ParityDebugPanel : MonoBehaviour
         _rightText.Append(label);
         _rightText.Append(": ");
         _rightText.Append(
-            value.ToString($"F{decimalPlaces}"));
+            FixedNumber(value, decimalPlaces));
         _rightText.AppendLine(unit);
     }
 
@@ -420,20 +533,23 @@ public class ParityDebugPanel : MonoBehaviour
 
     private string ScoreText(float score)
     {
+        string value =
+            FixedNumber(score, 3, 7);
+
         if (score >= headMotion.gyroBuildThreshold)
         {
             return
-                $"<color=#55FF77>{score:F3}</color>";
+                $"<color=#55FF77>{value}</color>";
         }
 
         if (score < headMotion.gyroLoseThreshold)
         {
             return
-                $"<color=#FF7777>{score:F3}</color>";
+                $"<color=#FF7777>{value}</color>";
         }
 
         return
-            $"<color=#FFD45A>{score:F3}</color>";
+            $"<color=#FFD45A>{value}</color>";
     }
 
     private static string YesNo(bool value)
@@ -516,5 +632,17 @@ public class ParityDebugPanel : MonoBehaviour
         return
             "<color=#FFD45A>All conditions look valid</color>\n" +
             "Waiting for the next parity evaluation.";
+    }
+
+    private static string FixedNumber(
+    float value,
+    int decimalPlaces,
+    int width = 8)
+    {
+        string formatted =
+            value.ToString($"F{decimalPlaces}");
+
+        return
+            $"<mspace=0.6em>{formatted.PadLeft(width)}</mspace>";
     }
 }

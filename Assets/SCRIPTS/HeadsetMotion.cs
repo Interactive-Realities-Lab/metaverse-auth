@@ -172,6 +172,12 @@ public class HeadsetMotion : MonoBehaviour
     public float gyroStepUp = 0.08f;
     public float gyroStepDown = 0.02f;
 
+    [Header("Head Movement Speed Feedback")]
+    public TMP_Text speedFeedbackText;
+
+    public float minGoodSpeed = 0.1f;
+    public float maxGoodSpeed = 2.5f;
+
     [Header("IMU Freshness")]
     public float imuGyroTimeoutSeconds = 0.75f;
     public float gyroQuestActiveRadPerSec = 0.1f;
@@ -186,10 +192,10 @@ public class HeadsetMotion : MonoBehaviour
     
 
     [Tooltip("How often to recompute score (seconds).")]
-    public float gyroScoreEverySeconds = 0.5f;
+    public float gyroScoreEverySeconds = 0.25f;
 
-    [Tooltip("If score stays below this for N checks -> mismatch (logic lives elsewhere).")]
-    public float gyroScoreWarnThreshold = 0.6f;
+    // [Tooltip("If score stays below this for N checks -> mismatch (logic lives elsewhere).")]
+    // public float gyroScoreWarnThreshold = 0.6f;
 
     float _lastParityCos = 0f;
 
@@ -1053,6 +1059,8 @@ public class HeadsetMotion : MonoBehaviour
                float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
                float iGyroMag = AvgGyroMag(_espGyroBuf, 0.7f);
 
+               UpdateSpeedFeedback(qGyroMag);
+
                _currentQuestGyroMagnitude = qGyroMag;
                _currentImuGyroMagnitude = iGyroMag;
 
@@ -1238,7 +1246,7 @@ public class HeadsetMotion : MonoBehaviour
                 }
                else if (oneSidedGyroMismatch)
                 {
-                    bool justStartedMoving = Time.time - _lastBothQuietAt < 0.5f;
+                    bool justStartedMoving = Time.time - _lastBothQuietAt < 0.25f;
 
                     if (justStartedMoving)
                     {
@@ -1249,7 +1257,7 @@ public class HeadsetMotion : MonoBehaviour
                     {
                         _oneSidedBadCount++;
 
-                        if (_oneSidedBadCount >= 2)
+                        if (_oneSidedBadCount >= 1)
                         {
                             _confidence -= gyroMismatchStepDown;
                             _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
@@ -1683,6 +1691,25 @@ public class HeadsetMotion : MonoBehaviour
 
             if (uiPanelActions != null)
                 uiPanelActions.HideContinuousAuthVisuals();
+        }
+    }
+
+    void UpdateSpeedFeedback(float qGyroMag)
+    {
+        if (speedFeedbackText == null)
+            return;
+
+        if (qGyroMag < minGoodSpeed)
+        {
+            speedFeedbackText.text = "MOVE FASTER";
+        }
+        else if (qGyroMag > maxGoodSpeed)
+        {
+            speedFeedbackText.text = "MOVE SLOWER";
+        }
+        else
+        {
+            speedFeedbackText.text = "GOOD SPEED";
         }
     }
     // ---------- helpers ----------
