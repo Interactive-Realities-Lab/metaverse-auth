@@ -345,8 +345,8 @@ public class ParityDebugPanel : MonoBehaviour
         _frontText.AppendLine();
 
         AddFrontValue(
-            "Motion ratio",
-            headMotion.CurrentMotionRatio,
+            "Motion Difference",
+            headMotion.CurrentMotionDifference,
             "",
             3);
 

@@ -14891,7 +14891,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devEchoToUI: 0
-  deviceIp: 192.168.0.104
+  deviceIp: 192.168.0.103
   port: 83
   wsPath: /
   enableImu: 1
@@ -49141,8 +49141,8 @@ MonoBehaviour:
   oneSidedMotionDeg: 4
   oneSidedBadChecksToPunish: 3
   oneSidedStepDown: 0.03
-  minMotionRatio: 0.75
-  maxMotionRatio: 1.35
+  oneSidedDifferenceThreshold: 0.2
+  maxMotionDifference: 0.2
   attachmentPitchToleranceDeg: 10
   attachmentRollToleranceDeg: 10
   attachmentConfirmSeconds: 2
@@ -49177,17 +49177,22 @@ MonoBehaviour:
   useGyroForParity: 1
   gyroBuildThreshold: 0.6
   gyroLoseThreshold: 0.3
-  gyroStepUp: 0.15
-  gyroStepDown: 0.05
+  gyroGainPerSecond: 0.32
+  gyroLossPerSecond: 0.08
+  gyroMismatchLossPerSecond: 0.32
+  gyroUncertainLossPerSecond: 0.02
   speedFeedbackText: {fileID: 1472538520}
   minGoodSpeed: 0.1
   maxGoodSpeed: 2.5
-  imuGyroTimeoutSeconds: 2
+  imuGyroTimeoutSeconds: 2.5
   gyroQuestActiveRadPerSec: 0.1
   gyroImuActiveRadPerSec: 0.1
-  gyroMismatchStepDown: 0.1
+  minEvidenceMotion: 0.03
   detachedLoseSeconds: 1.5
-  detachedRatioThreshold: 3
+  detachedDifferenceThreshold: 0.2
+  detachWarningSeconds: 2
+  noMotionGraceSeconds: 1
+  noMotionLossPerSecond: 0.05
   gyroScoreEverySeconds: 0.25
 --- !u!114 &8293533729936726385
 MonoBehaviour:
