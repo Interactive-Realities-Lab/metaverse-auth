@@ -20,7 +20,6 @@ public class HeadsetMotion : MonoBehaviour
     [Header("Formatting")]
     public int decimals = 1;                   // UI only
     public bool questRelativeZero = true;
-
     [Header("(Auto) Row labels")]
     public TMP_Text rowQuestText;              // Motion/RowQuest/Text (TMP)
     public TMP_Text rowImuText;                // Motion/RowIMU/Text (TMP)
@@ -30,20 +29,6 @@ public class HeadsetMotion : MonoBehaviour
     public TMP_Text parityText; // add a TMP text in the UI if you want
 
     [SerializeField] private UIOTPHandler otpHandler;
-
-    [Header("Parity logic (angles)")]
-    //public float parityBuildSeconds = 1.0f;       // kept for tuning/reference
-    public float parityCheckEverySeconds = 0.15f; // how often to evaluate
-    //public float parityDeltaToleranceDeg = 4.5f;  // kept for tuning/reference
-    //public int parityBadChecksToLose = 3;         // kept for tuning/reference
-    public float parityCosThreshold = 0.3f;
-    public float parityMinMotionDeg = 2.0f;
-
-    [Header("One-sided motion tolerance")]
-    public float oneSidedMotionDeg = 4.0f;
-    public int oneSidedBadChecksToPunish = 3;
-    public float oneSidedStepDown = 0.03f;
-    public float oneSidedDifferenceThreshold = 0.20f;
 
     [Header("Attachment Gate")]
     public float maxMotionDifference = 0.20f; // rad/s
@@ -60,14 +45,8 @@ public class HeadsetMotion : MonoBehaviour
 
     private int _oneSidedBadCount = 0;
     bool _parityBuilt = false;
-    float _nextParityCheckAt = 0f;
     float _confidence = 0f;
     bool _parityEverBuilt = false;                //tracking whether parity was ever built once
-
-    // previous samples (to compute change)
-    bool _havePrevQuest = false, _havePrevImu = false;
-    Vector3 _prevQuestPYR; // (pitch,yaw,roll)
-    Vector3 _prevImuPYR;
 
     bool _pendingMatchedUi = false;
     float _pendingMatchedUiAt = 0f;
@@ -78,8 +57,6 @@ public class HeadsetMotion : MonoBehaviour
     [Header("Parity hysteresis")]
     public float buildThreshold = 1.0f;
     public float loseThreshold = 0.2f;
-    public float stepUp = 0.15f;
-    public float stepDown = 0.075f;
 
     [Header("Auth Gate")]
     [SerializeField] private bool authVerified = false;
@@ -87,7 +64,7 @@ public class HeadsetMotion : MonoBehaviour
     [Header("Continuous Auth UI")]
     public ControlUIFeedback controlUIFeedback;
     public ProgressBar progressBar;
-    
+
 
     [Header("Parity Warning")]
     public float almostLostThreshold = 0.45f;
@@ -183,6 +160,9 @@ public class HeadsetMotion : MonoBehaviour
     [Tooltip("Small confidence loss per real second while score is uncertain and parity is not yet built.")]
     public float gyroUncertainLossPerSecond = 0.02f;
 
+    [Header("Gyro Average Motion Window")]
+    public float gyroAverageWindowSeconds = 0.7f;
+
     [Header("Head Movement Speed Feedback")]
     public TMP_Text speedFeedbackText;
 
@@ -215,8 +195,6 @@ public class HeadsetMotion : MonoBehaviour
     // [Tooltip("If score stays below this for N checks -> mismatch (logic lives elsewhere).")]
     // public float gyroScoreWarnThreshold = 0.6f;
 
-    float _lastParityCos = 0f;
-
     float _currentQuestYaw = 0f;
     float _currentQuestPitch = 0f;
     float _currentQuestRoll = 0f;
@@ -237,6 +215,8 @@ public class HeadsetMotion : MonoBehaviour
     public bool ParityBuilt => _parityBuilt;
     public float CurrentConfidence => _confidence;
     public float CurrentGyroScore => _gyroScore;
+
+    public bool HasTrustedOrientationOffset => _haveTrustedOrientationOffset;
 
     // ============================================================
     // Values exposed to the live debug panel
@@ -273,6 +253,38 @@ public class HeadsetMotion : MonoBehaviour
     private string _lastParityEvent = "Waiting";
     private string _lastParityReason = "Parity has not been evaluated yet";
     private string _lastParityEventTime = "--:--:--";
+
+    // ============================================================
+    // Detailed calculation trace for ParityDebugPanel
+    // ============================================================
+
+    // Number of samples used in the 0.70 s average-magnitude calculation
+    private int _currentQuestAverageSampleCount = 0;
+    private int _currentImuAverageSampleCount = 0;
+
+    // Number of Quest samples that were paired with IMU samples
+    // when calculating Pearson correlation
+    private int _currentMatchedGyroPairCount = 0;
+
+    // Exact elapsed time used during the latest confidence update
+    private float _currentGyroElapsedSeconds = 0f;
+
+    // Confidence before and after the latest calculation
+    private float _currentPreviousConfidence = 0f;
+    private float _currentConfidenceBeforeClamp = 0f;
+    private float _currentConfidenceDelta = 0f;
+
+    // Rate selected by the actual confidence branch
+    private float _currentConfidenceRate = 0f;
+
+    // Important Boolean decisions from the actual parity algorithm
+    private bool _currentEnoughMotionForScoring = false;
+    private bool _currentTooFastMotion = false;
+    private bool _currentMotionDifferenceValid = false;
+    private bool _currentAttachmentReady = false;
+
+    // Human-readable description of what the algorithm actually did
+    private string _currentConfidenceAction = "Waiting for parity evaluation";
 
 
     // ---------------- IMU orientation ----------------
@@ -346,14 +358,59 @@ public class HeadsetMotion : MonoBehaviour
     public int CurrentOneSidedBadCount =>
         _oneSidedBadCount;
 
+    // ---------------- Detailed calculation trace ----------------
+
+    public int CurrentQuestGyroBufferCount =>
+        _questGyroBuf.Count;
+
+    public int CurrentImuGyroBufferCount =>
+        _espGyroBuf.Count;
+
+    public int CurrentQuestAverageSampleCount =>
+        _currentQuestAverageSampleCount;
+
+    public int CurrentImuAverageSampleCount =>
+        _currentImuAverageSampleCount;
+
+    public int CurrentMatchedGyroPairCount =>
+        _currentMatchedGyroPairCount;
+
+    public float CurrentGyroElapsedSeconds =>
+        _currentGyroElapsedSeconds;
+
+    public float CurrentPreviousConfidence =>
+        _currentPreviousConfidence;
+
+    public float CurrentConfidenceBeforeClamp =>
+        _currentConfidenceBeforeClamp;
+
+    public float CurrentConfidenceDelta =>
+        _currentConfidenceDelta;
+
+    public float CurrentConfidenceRate =>
+        _currentConfidenceRate;
+
+    public bool CurrentEnoughMotionForScoring =>
+        _currentEnoughMotionForScoring;
+
+    public bool CurrentTooFastMotion =>
+        _currentTooFastMotion;
+
+    public bool CurrentMotionDifferenceValid =>
+        _currentMotionDifferenceValid;
+
+    public bool CurrentAttachmentReady =>
+        _currentAttachmentReady;
+
+    public string CurrentConfidenceAction =>
+        _currentConfidenceAction;
+
 
     // ---------------- Parity information ----------------
 
     public MotionState CurrentMotionState => _state;
     public bool ParityEverBuilt => _parityEverBuilt;
     public bool ReauthRequired => _reauthRequired;
-
-    public float CurrentLastParityCos => _lastParityCos;
 
     public bool ParityLostCountdownRunning =>
         _parityLostCountdownRunning;
@@ -370,7 +427,7 @@ public class HeadsetMotion : MonoBehaviour
     public string LastParityEventTime =>
         _lastParityEventTime;
 
-    public string CurrentParityLostReason => 
+    public string CurrentParityLostReason =>
         _lastParityReason;
 
 
@@ -424,7 +481,6 @@ public class HeadsetMotion : MonoBehaviour
     float _lastImuYprAt = -999f;
     float _lastImuGyroAt = -999f;
     float _lastBothQuietAt = -999f;
-    bool _imuYprUpdated = false;
 
     void Awake()
     {
@@ -454,10 +510,6 @@ public class HeadsetMotion : MonoBehaviour
         if (rowDeltaText) rowDeltaText.text = "Delta | Yaw: —  Pitch: —  Roll: —";
         if (rowGyroText) rowGyroText.text = "GYRO  | Score: — (x:— y:— z:—)";
         if (parityText) parityText.text = "PARITY | —";
-
-        // If you want stepUp/stepDown tied to check rate, keep this.
-        stepUp = parityCheckEverySeconds;
-        stepDown = parityCheckEverySeconds * 0.5f;
 
         SetState(MotionState.Sampling, true);
 
@@ -553,12 +605,6 @@ public class HeadsetMotion : MonoBehaviour
     {
         return _state;
     }
-
-    public float LastParityCos()
-    {
-        return _lastParityCos;
-    }
-
     public float ParityLostTimeRemaining()
     {
         return Mathf.Max(0f, parityLostTimeoutSeconds - _parityLostTimer);
@@ -573,8 +619,10 @@ public class HeadsetMotion : MonoBehaviour
 
         _lastParityEventTime =
             DateTime.Now.ToString("HH:mm:ss.fff");
-                
+
         Debug.Log("Parity lost timeout reached. Returning to login panel.");
+
+        // mapping p, r, y
 
         if (parityEventLogger != null)
         {
@@ -584,16 +632,17 @@ public class HeadsetMotion : MonoBehaviour
             float imuPitchQ = -_r;
             float imuRollQ = -_p;
 
-           parityEventLogger.LogEvent(
-            "REAUTH_TIMEOUT",
-            trialTime,
-            _currentQuestYaw, _currentQuestPitch, _currentQuestRoll,
-            imuYawQ, imuPitchQ, imuRollQ,
-            _confidence,
-            _lastParityCos,
-            _gyroScore,
-            _lastParityReason
-          );
+            parityEventLogger.LogEvent(
+             "REAUTH_TIMEOUT",
+             trialTime,
+             _currentQuestYaw, _currentQuestPitch, _currentQuestRoll,
+             imuYawQ, imuPitchQ, imuRollQ,
+             _confidence,
+             0f, // legacy cosine field intentionally unused
+
+             _gyroScore,
+             _lastParityReason
+           );
         }
 
         // Force full logout
@@ -622,13 +671,48 @@ public class HeadsetMotion : MonoBehaviour
         _haveP = _haveR = _haveY = true;
 
         _lastImuYprAt = Time.time;
-        _imuYprUpdated = true;
     }
 
     //Called by FingerprintWsClient whenever it parses ESP gyro
     void OnImuGyro(float gx, float gy, float gz)
     {
-        _espGyro = new Vector3(gx, gy, gz) * Mathf.Deg2Rad;
+        //raw value with dominant axis debug start
+
+        // float absGx = Mathf.Abs(gx);
+        // float absGy = Mathf.Abs(gy);
+        // float absGz = Mathf.Abs(gz);
+
+        // string dominantImuAxis;
+
+        // if (absGx >= absGy && absGx >= absGz)
+        // {
+        //     dominantImuAxis = "GX";
+        // }
+        // else if (absGy >= absGx && absGy >= absGz)
+        // {
+        //     dominantImuAxis = "GY";
+        // }
+        // else
+        // {
+        //     dominantImuAxis = "GZ";
+        // }
+
+        // Debug.Log(
+        //     $"IMU RAW GYRO | " +
+        //     $"gx={gx:F2} | " +
+        //     $"gy={gy:F2} | " +
+        //     $"gz={gz:F2} | " +
+        //     $"DOMINANT={dominantImuAxis}"
+        // );
+
+        //raw value debug end
+
+        _espGyro = new Vector3(
+            gx,   // Quest X = Pitch  ← IMU GX
+            gz,   // Quest Y = Yaw    ← IMU GZ
+            gy    // Quest Z = Roll   ← IMU GY
+        ) * Mathf.Deg2Rad;
+
         _haveG = true;
         _lastImuGyroAt = Time.time;
 
@@ -636,11 +720,11 @@ public class HeadsetMotion : MonoBehaviour
         _espGyroBuf.Add(new Sample(t, _espGyro));
         TrimOld(_espGyroBuf, t - gyroWindowSeconds);
 
-        Debug.Log($"IMU RAW GYRO = {_espGyro.magnitude:F3}");
+        //Debug.Log($"IMU RAW GYRO = {_espGyro.magnitude:F3}");
 
-/*#if UNITY_EDITOR
-        Debug.Log($"ESP GYRO: gx={gx:F3}, gy={gy:F3}, gz={gz:F3}");
-#endif*/
+        /*#if UNITY_EDITOR
+                Debug.Log($"ESP GYRO: gx={gx:F3}, gy={gy:F3}, gz={gz:F3}");
+        #endif*/
     }
 
     static Quaternion ImuYprToQuat(float pitch, float roll, float yaw)
@@ -751,242 +835,8 @@ public class HeadsetMotion : MonoBehaviour
             return;
         }
 
-        // ---------------- PARITY (angles: change should match) ----------------
-        // ---------------- PARITY (angles: change should match) ----------------
-        if (!useGyroForParity)
-        {
-            if (Time.time >= _nextParityCheckAt)
-            {
-            _nextParityCheckAt = Time.time + Mathf.Max(0.05f, parityCheckEverySeconds);
+        // Parity is evaluated only by the current gyro-based method below.
 
-            bool haveImuNow = _haveP && _haveR && _haveY;
-            bool haveQuestNow = haveQuest;
-
-            if (haveQuestNow && haveImuNow)
-            {
-                Vector3 questNow = new Vector3(questPitch, questYaw, questRoll);
-                Vector3 imuNow = new Vector3(-_r, -_y, -_p);
-
-                if (_havePrevQuest && _havePrevImu)
-                {
-                    float dQuestPitch = Mathf.DeltaAngle(_prevQuestPYR.x, questNow.x);
-                    float dQuestYaw = Mathf.DeltaAngle(_prevQuestPYR.y, questNow.y);
-                    float dQuestRoll = Mathf.DeltaAngle(_prevQuestPYR.z, questNow.z);
-
-                    float dImuPitch = Mathf.DeltaAngle(_prevImuPYR.x, imuNow.x);
-                    float dImuYaw = Mathf.DeltaAngle(_prevImuPYR.y, imuNow.y);
-                    float dImuRoll = Mathf.DeltaAngle(_prevImuPYR.z, imuNow.z);
-
-                    Vector3 dq = new Vector3(dQuestPitch, dQuestYaw, dQuestRoll);
-                    Vector3 di = new Vector3(dImuPitch, dImuYaw, dImuRoll);
-
-                    bool imuUpdatedSinceLastCheck = _imuYprUpdated;
-                    _imuYprUpdated = false;
-
-                    float cosSim = 0f;
-                    bool good = false;
-
-                    float questMag = dq.magnitude;
-                    float imuMag = di.magnitude;
-
-                    bool questMoved = questMag >= parityMinMotionDeg;
-                    bool imuMoved = imuMag >= parityMinMotionDeg;
-
-                    // Evaluate if at least one moved
-                    bool evaluated = imuUpdatedSinceLastCheck && (questMoved || imuMoved);
-
-                    if (!evaluated)
-                    {
-                        Debug.Log("ParityCheck SKIPPED (no movement on both devices)");
-                    }
-                    else
-                    {
-                        Debug.Log($"ParityCheck running | conf={_confidence:F2} | built={_parityBuilt} | ever={_parityEverBuilt}");
-
-                        bool shouldApplyConfidence = true;
-
-                        if (questMoved && imuMoved)
-                        {
-                            cosSim = Vector3.Dot(dq.normalized, di.normalized);
-
-                            float motionDifference =
-                                Mathf.Abs(questMag - imuMag);
-
-                            bool similarAmount =
-                                motionDifference <= maxMotionDifference;
-
-                            good = cosSim >= parityCosThreshold && similarAmount;
-
-                            if (!similarAmount)
-                            {
-                                Debug.Log(
-                                    $"ATTACHMENT GATE FAILED | " +
-                                    $"qMag={questMag:F2} imuMag={imuMag:F2} " +
-                                    $"difference={motionDifference:F2}");
-                            }
-
-                            _oneSidedBadCount = 0;
-                        }
-                        else
-                        {
-                            float oneSidedAmount = Mathf.Max(questMag, imuMag);
-
-                            if (oneSidedAmount >= oneSidedMotionDeg)
-                            {
-                                _oneSidedBadCount++;
-
-                                cosSim = -1f;
-                                good = false;
-
-                                if (_oneSidedBadCount < oneSidedBadChecksToPunish)
-                                {
-                                    Debug.Log($"One-sided motion detected but waiting: {_oneSidedBadCount}/{oneSidedBadChecksToPunish}");
-                                    shouldApplyConfidence = false;
-                                }
-                            }
-                            else
-                            {
-                                Debug.Log("Small one-sided motion ignored.");
-                                shouldApplyConfidence = false;
-                            }
-                        }
-
-                        _lastParityCos = cosSim;
-
-                        if (shouldApplyConfidence)
-                        {
-                            if (good)
-                                _confidence += stepUp;
-                            else
-                            {
-                                if (_oneSidedBadCount >= oneSidedBadChecksToPunish)
-                                    _confidence -= oneSidedStepDown;
-                                else
-                                    _confidence -= stepDown;
-                            }
-
-                            _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
-
-                            Debug.Log($"AlmostLost check | built={_parityBuilt} conf={_confidence:F2}");
-
-                            if (_parityBuilt && _confidence <= almostLostThreshold && _confidence > loseThreshold)
-                            {
-                                if (!_almostLostShowing)
-                                {
-                                    _almostLostShowing = true;
-
-                                    if (uiPanelActions != null)
-                                        uiPanelActions.ShowParityLosingUI();
-                                }
-                            }
-                            else
-                            {
-                                if (_almostLostShowing)
-                                {
-                                    _almostLostShowing = false;
-
-                                    if (uiPanelActions != null)
-                                        uiPanelActions.HideParityLosingUI();
-                                }
-                            }
-                        }
-
-
-                        if (!_parityBuilt &&
-                            !_detachmentLockout &&
-                            _confidence >= buildThreshold)
-                        {
-                            bool wasReestablishing = _parityEverBuilt;
-
-                            _confidence = buildThreshold;               
-
-                            _parityBuilt = true;
-                            _parityEverBuilt = true;
-                            _reauthRequired = false;
-
-                            XRDeviceLogger.Instance?.SetParityEstablished(true);
-
-                            Debug.Log("Parity established. XR data recording started.");
-
-                            Debug.Log("HeadsetMotion: MATCHED");
-
-                            if (SceneFlow.Instance != null)
-                            {
-                                if (wasReestablishing)
-                                    SceneFlow.Instance.RestoreCurrentSceneAfterParity();
-                                else
-                                    SceneFlow.Instance.OpenContentScene("Lobby");
-                            }
-
-                            _pendingMatchedUi = true;
-                            _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
-                        }
-                        else if (_parityBuilt && _confidence <= loseThreshold)
-                        {
-                            _parityBuilt = false;
-                            _pendingMatchedUi = false;
-                            _reauthRequired = true;   // starting re-auth timeout behavior
-
-                            Debug.Log("HeadsetMotion: LOST");
-
-                            if (SceneFlow.Instance != null)
-                                SceneFlow.Instance.ShowContinuousAuthUI();
-                            else if (uiPanelActions != null)
-                                uiPanelActions.ShowContinuousAuth();
-                        }
-                    }
-
-                    /*#if UNITY_EDITOR
-                                        if (Time.frameCount % 30 == 0)
-                                        {
-                                            Debug.Log(
-                                                $"dq(Q): P{dq.x:F2} Y{dq.y:F2} R{dq.z:F2} | " +
-                                                $"di(IMU): P{di.x:F2} Y{di.y:F2} R{di.z:F2} | " +
-                                                $"updated:{imuUpdatedSinceLastCheck} eval:{evaluated} cos:{cosSim:F2} built:{_parityBuilt} conf:{_confidence:F2}");
-                                        }
-                    #endif*/
-
-                    if (parityText)
-                    {
-                        if (_parityBuilt)
-                            parityText.text = $"PARITY | BUILT (cos:{cosSim:F2})";
-                        else if (_confidence <= loseThreshold)
-                            parityText.text = $"PARITY | LOST (cos:{cosSim:F2})";
-                        else
-                            parityText.text = $"PARITY | SAMPLING (cos:{cosSim:F2})";
-                    }
-
-                    if (_parityBuilt)
-                    {
-                        SetState(MotionState.Matched);
-                    }
-                    else if (_parityEverBuilt && _confidence <= loseThreshold)
-                    {
-                        SetState(MotionState.NotMatched);
-                    }
-                    else
-                    {
-                        SetState(MotionState.Sampling);
-                    }
-
-                // ALWAYS update previous values
-                _prevQuestPYR = questNow;
-                _prevImuPYR = imuNow;
-                _havePrevQuest = _havePrevImu = true;
-            }
-            else
-            {
-                _lastParityCos = 0f;
-                _confidence = 0f;
-                _parityBuilt = false;
-                if (parityText) parityText.text = "PARITY | —";
-                _havePrevQuest = _havePrevImu = false;
-
-                SetState(MotionState.Sampling);
-            }
-        }
-      }
-    }
         if (_pendingMatchedUi && _parityBuilt && Time.time >= _pendingMatchedUiAt)
         {
             _pendingMatchedUi = false;
@@ -1001,8 +851,16 @@ public class HeadsetMotion : MonoBehaviour
         }
 
         // ---------------- QUEST gyro capture + score ----------------
+
         if (TryGetHmdAngularVelocity(out Vector3 questW))
         {
+            // Debug.Log(
+            //     $"QUEST RAW GYRO | " +
+            //     $"X={questW.x:F3} | " +
+            //     $"Y={questW.y:F3} | " +
+            //     $"Z={questW.z:F3}"
+            // );
+
             CurrentQuestGyro = questW;
             HasQuestGyro = true;
 
@@ -1010,501 +868,735 @@ public class HeadsetMotion : MonoBehaviour
             _questGyroBuf.Add(new Sample(t, questW));
             TrimOld(_questGyroBuf, t - gyroWindowSeconds);
 
-            Debug.Log($"QUEST RAW GYRO = {questW.magnitude:F3}");
+            //Debug.Log($"QUEST RAW GYRO = {questW.magnitude:F3}");
         }
         else
         {
             HasQuestGyro = false;
+
+            Debug.Log(
+                "QUEST RAW GYRO | FAILED TO GET HEADSET ANGULAR VELOCITY"
+            );
         }
 
         // Recompute score periodically
         if (Time.time >= _nextGyroScoreAt)
-{
-    _nextGyroScoreAt = Time.time + Mathf.Max(0.05f, gyroScoreEverySeconds);
-
-    if (_haveG && _questGyroBuf.Count > 20 && _espGyroBuf.Count > 20)
-    {
-        ComputeGyroScore(out _gyroScore, out _gyroScoreX, out _gyroScoreY, out _gyroScoreZ);
-
-        if (useGyroForParity && authVerified)
         {
-            // TIME-BASED CONFIDENCE:
-            // Measure actual elapsed real time since the previous gyro decision.
-            // The first evaluation uses the configured score interval as a
-            // reasonable initial delta.
-            float gyroEvalNow = Time.unscaledTime;
-            float gyroElapsedSeconds =
-                (_lastGyroConfidenceUpdateAt < 0f)
-                    ? Mathf.Max(0.05f, gyroScoreEverySeconds)
-                    : Mathf.Max(0f, gyroEvalNow - _lastGyroConfidenceUpdateAt);
+            _nextGyroScoreAt = Time.time + Mathf.Max(0.05f, gyroScoreEverySeconds);
 
-            _lastGyroConfidenceUpdateAt = gyroEvalNow;
-        //    if (_detachmentLockout)
-        //    {
-        //         _confidence = 0f;
-        //         _parityBuilt = false;
-        //         _pendingMatchedUi = false;
-        //         _reauthRequired = true;
-
-        //         Debug.Log("GYRO PARITY | DETACHMENT LOCKOUT ACTIVE - BUILD BLOCKED");
-
-        //         UpdateParityUIState();
-        //         return;
-        //     }    
-           
-            bool imuGyroFresh = Time.time - _lastImuGyroAt <= imuGyroTimeoutSeconds;
-            _currentImuGyroFresh = imuGyroFresh;
-
-            if (!imuGyroFresh)
+            if (_haveG && _questGyroBuf.Count > 20 && _espGyroBuf.Count > 20)
             {
-                float imuAge = Time.time - _lastImuGyroAt;
+                ComputeGyroScore(
+                out _gyroScore,
+                out _gyroScoreX,
+                out _gyroScoreY,
+                out _gyroScoreZ,
+                out _currentMatchedGyroPairCount);
 
-                if (_parityBuilt)
+                Debug.Log("GYRO PARITY | gyro score recalculated");
+
+                if (useGyroForParity && authVerified)
                 {
-                    _confidence = 0f;
-                    _parityBuilt = false;
+                    // TIME-BASED CONFIDENCE:
+                    // Measure actual elapsed real time since the previous gyro decision.
+                    // The first evaluation uses the configured score interval as a
+                    // reasonable initial delta.
+                    float gyroEvalNow = Time.unscaledTime;
 
-                    XRDeviceLogger.Instance?.SetParityEstablished(false);
+                    // does not necessarily use exactly gyroScoreEverySeconds for confidence. Calculates real elapsed time
 
-                    _pendingMatchedUi = false;
-                    _reauthRequired = true;
-                    //_detachmentLockout = true;
+                    float gyroElapsedSeconds =
+                        (_lastGyroConfidenceUpdateAt < 0f)
+                            ? Mathf.Max(0.05f, gyroScoreEverySeconds)
+                            : Mathf.Max(0f, gyroEvalNow - _lastGyroConfidenceUpdateAt);
 
-                    _lastParityEvent = "PARITY LOST BY IMU DISCONNECTION";
+                    _currentGyroElapsedSeconds =
+                    gyroElapsedSeconds;
 
-                    _lastParityReason =
-                        $"No IMU gyro packet received for {imuAge:F2} seconds";
+                    // Save confidence BEFORE this evaluation changes it
+                    _currentPreviousConfidence =
+                        _confidence;
 
-                    _lastParityEventTime =
-                        DateTime.Now.ToString("HH:mm:ss.fff");
+                    // Defaults. The branch below will overwrite these
+                    // when confidence actually increases/decreases.
+                    _currentConfidenceRate = 0f;
+                    _currentConfidenceAction =
+                        "HOLD - no confidence change selected";
+
+                    _lastGyroConfidenceUpdateAt = gyroEvalNow;
+
+                    //    if (_detachmentLockout)
+                    //    {
+                    //         _confidence = 0f;
+                    //         _parityBuilt = false;
+                    //         _pendingMatchedUi = false;
+                    //         _reauthRequired = true;
+
+                    //         Debug.Log("GYRO PARITY | DETACHMENT LOCKOUT ACTIVE - BUILD BLOCKED");
+
+                    //         UpdateParityUIState();
+                    //         return;
+                    //     }    
+
+                    bool imuGyroFresh = Time.time - _lastImuGyroAt <= imuGyroTimeoutSeconds;
+                    _currentImuGyroFresh = imuGyroFresh;
 
                     Debug.Log(
-                        $"HeadsetMotion: LOST by stale IMU data. Age={imuAge:F2}s");
+                    imuGyroFresh
+                        ? "GYRO PARITY | IMU gyro data is fresh"
+                        : "GYRO PARITY | IMU gyro data is stale"
+                    );
 
-                    if (SceneFlow.Instance != null)
-                        SceneFlow.Instance.ShowContinuousAuthUI();
-                    else if (uiPanelActions != null)
-                        uiPanelActions.ShowContinuousAuth();
-
-                    UpdateParityUIState();
-                }
-
-                return;
-            }
-
-            else
-            {
-               float qGyroMag = AvgGyroMag(_questGyroBuf, 0.7f);
-               float iGyroMag = AvgGyroMag(_espGyroBuf, 0.7f);
-
-               UpdateSpeedFeedback(qGyroMag);
-
-               _currentQuestGyroMagnitude = qGyroMag;
-               _currentImuGyroMagnitude = iGyroMag;
-
-               float motionDifference =
-                    Mathf.Abs(qGyroMag - iGyroMag);
-
-               _currentMotionDifference = motionDifference;
-
-               float currentPitchOffset =
-                    Mathf.DeltaAngle(-_r, questPitch);
-
-               float currentRollOffset =
-                    Mathf.DeltaAngle(-_p, questRoll);
-
-               float pitchOffsetError = Mathf.Abs(
-                    Mathf.DeltaAngle(_trustedPitchOffset, currentPitchOffset)
-                );
-
-               float rollOffsetError = Mathf.Abs(
-                    Mathf.DeltaAngle(_trustedRollOffset, currentRollOffset)
-                );
-
-               bool mountingOrientationValid =
-                    !_haveTrustedOrientationOffset ||
-                    (pitchOffsetError <= attachmentPitchToleranceDeg &&
-                    rollOffsetError <= attachmentRollToleranceDeg);
-
-               _currentPitchOffsetError = pitchOffsetError;
-               _currentRollOffsetError = rollOffsetError;
-               _currentMountingOrientationValid =
-                    mountingOrientationValid;
-
-               if (!_parityBuilt)
-               {
-                    bool attachmentEvidenceValid =
-                        mountingOrientationValid &&
-                        motionDifference <= maxMotionDifference;
-
-                    if (attachmentEvidenceValid)
+                    if (!imuGyroFresh)
                     {
-                        _orientationValidTimer += gyroScoreEverySeconds;
-                    }
-                    else
-                    {
-                        _orientationValidTimer = 0f;
-                    }
-               }
+                        float imuAge = Time.time - _lastImuGyroAt;
 
-               else
-                {
-                    _orientationValidTimer = 0f;
-                }
-                
-               Debug.Log(
-                    $"MOUNT CHECK | valid={mountingOrientationValid} " +
-                    $"pitchErr={pitchOffsetError:F1} " +
-                    $"rollErr={rollOffsetError:F1} " +
-                    $"timer={_orientationValidTimer:F1}");
-
-               if (_detachmentLockout &&
-                mountingOrientationValid &&
-                _orientationValidTimer >= attachmentConfirmSeconds)
-               {
-                _detachmentLockout = false;
-                _confidence = 0f;
-
-                Debug.Log(
-                    "DETACHMENT LOCKOUT CLEARED by stable pitch/roll alignment");
-                }
-
-               float imuAge = Time.time - _lastImuGyroAt;
-
-               Debug.Log(
-                $"GYRO RAW | age={imuAge:F2}s " +
-                $"score={_gyroScore:F2} " +
-                $"qMag={qGyroMag:F2} " +
-                $"iMag={iGyroMag:F2}");
-
-               bool questActive = qGyroMag >= gyroQuestActiveRadPerSec;
-               bool imuActive = iGyroMag >= gyroImuActiveRadPerSec;
-
-               bool enoughMotionForScoring =
-                    qGyroMag >= minEvidenceMotion ||
-                    iGyroMag >= minEvidenceMotion;
-
-               _currentQuestActive = questActive;
-               _currentImuActive = imuActive;
-
-               Debug.Log(
-                $"ACTIVE? quest={questActive} imu={imuActive} " +
-                $"qMag={qGyroMag:F2} iMag={iGyroMag:F2}");
-
-            //    bool bothQuiet =
-            //     qGyroMag < gyroQuestActiveRadPerSec &&
-            //     iGyroMag < gyroImuActiveRadPerSec;
-
-            //    _currentBothQuiet = bothQuiet;
-               
-            //    bool oneSidedGyroMismatch =
-            //         qGyroMag > 0.15f &&
-            //         motionDifference > oneSidedDifferenceThreshold;
-
-            bool oneSidedGyroMismatch = false;
-
-               Debug.Log(
-                    $"GYRO PARITY | score={_gyroScore:F2} " +
-                    $"qMag={qGyroMag:F2} iMag={iGyroMag:F2} " +
-                    $"diff={motionDifference:F2} " +
-                    $"conf={_confidence:F2}"); 
-
-            bool detachedMotion =
-                    qGyroMag >= gyroQuestActiveRadPerSec &&
-                    iGyroMag < gyroImuActiveRadPerSec &&
-                    motionDifference >= detachedDifferenceThreshold;
-              
-                _currentDetachedMotion = detachedMotion;
-
-            if (_parityBuilt && detachedMotion)
-               {
-                    if (_detachWarningStartTime < 0f)
-                    {
-                        _detachWarningStartTime = Time.unscaledTime;
-
-                        // Put confidence into warning range
-                        _confidence = Mathf.Min(_confidence, almostLostThreshold);
-
-                        if (uiPanelActions != null)
-                            uiPanelActions.ShowParityLosingUI();
-                    }
-
-                    float warningElapsed =
-                        Time.unscaledTime - _detachWarningStartTime;
-
-                    if (warningElapsed >= detachWarningSeconds)
-                    {
-                        _confidence = 0f;
-                        _parityBuilt = false;
-
-                        XRDeviceLogger.Instance?.SetParityEstablished(false);
-
-                        _pendingMatchedUi = false;
-                        _reauthRequired = true;
-
-                        if (uiPanelActions != null)
-                            uiPanelActions.HideParityLosingUI();
-
-                        if (SceneFlow.Instance != null)
-                            SceneFlow.Instance.ShowContinuousAuthUI();
-                        else if (uiPanelActions != null)
-                            uiPanelActions.ShowContinuousAuth();
-
-                        UpdateParityUIState();
-                    }
-                }
-            else
-                {
-                    _detachWarningStartTime = -1f;
-                }
-
-            bool tooFastMotion = qGyroMag > 2.5f || iGyroMag > 2.5f;
-            bool bothQuiet = false;
-                _currentBothQuiet = false;
-                                      
-            if (tooFastMotion)
-               {
-                    Debug.Log(
-                        $"GYRO PARITY | too fast for reliable scoring | " +
-                        $"score={_gyroScore:F2} conf={_confidence:F2}");
-
-                    // Hold confidence
-                    _oneSidedBadCount = 0;
-               }
-            else if (bothQuiet)
-               {
-                    Debug.Log("GYRO PARITY | both quiet, holding confidence");
-                    _lastBothQuietAt = Time.time;
-                    _oneSidedBadCount = 0;
-               }
-            else if (oneSidedGyroMismatch)
-               {
-                    bool justStartedMoving = Time.time - _lastBothQuietAt < 0.25f;
-
-                    if (justStartedMoving)
-                    {
-                        Debug.Log("GYRO PARITY | movement just started, ignoring first mismatch");
-                        _oneSidedBadCount = 0;
-                    }
-                    else
-                    {
-                        _oneSidedBadCount++;
-
-                        if (_oneSidedBadCount >= 1)
+                        if (_parityBuilt)
                         {
-                            _confidence -= gyroMismatchLossPerSecond * gyroElapsedSeconds;
-                            _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+                            Debug.Log(
+                            "GYRO PARITY | IMU data became stale, confidence is reset and parity is lost"
+                        );
+                            _confidence = 0f;
+                            _parityBuilt = false;
+
+                            XRDeviceLogger.Instance?.SetParityEstablished(false);
+
+                            _pendingMatchedUi = false;
+                            _reauthRequired = true;
+                            //_detachmentLockout = true;
+
+                            _lastParityEvent = "PARITY LOST BY IMU DISCONNECTION";
+
+                            _lastParityReason =
+                                $"No IMU gyro packet received for {imuAge:F2} seconds";
+
+                            _lastParityEventTime =
+                                DateTime.Now.ToString("HH:mm:ss.fff");
+
+                            Debug.Log(
+                                $"HeadsetMotion: LOST by stale IMU data. Age={imuAge:F2}s");
+
+                            if (SceneFlow.Instance != null)
+                                SceneFlow.Instance.ShowContinuousAuthUI();
+                            else if (uiPanelActions != null)
+                                uiPanelActions.ShowContinuousAuth();
+
                             UpdateParityUIState();
                         }
-                    }
-                }
-            else
-                {
-                    _oneSidedBadCount = 0;
 
-                    if (_detachmentLockout)
-                    {
-                        // IMU was previously detached.
-                        // Do not allow parity to rebuild from matching hand movement.
-                        _confidence = 0f;
-
-                        Debug.Log(
-                            "GYRO PARITY | rebuild blocked because IMU detach lockout is active");
+                        return;
                     }
 
                     else
                     {
-                            if (!enoughMotionForScoring)
+                        float qGyroMag =
+                            AvgGyroMag(
+                                _questGyroBuf,
+                                gyroAverageWindowSeconds,
+                                out int questAverageSampleCount);
+
+                        float iGyroMag =
+                            AvgGyroMag(
+                                _espGyroBuf,
+                                gyroAverageWindowSeconds,
+                                out int imuAverageSampleCount);
+
+                        _currentQuestAverageSampleCount =
+                            questAverageSampleCount;
+
+                        _currentImuAverageSampleCount =
+                            imuAverageSampleCount;
+
+                        Debug.Log(
+                             $"GYRO PARITY | Quest and IMU average motion magnitudes calculated | " +
+                             $"Quest = {qGyroMag:F3} rad/s | IMU = {iGyroMag:F3} rad/s"
+                        );
+
+                        UpdateSpeedFeedback(qGyroMag);
+
+                        _currentQuestGyroMagnitude = qGyroMag;
+                        _currentImuGyroMagnitude = iGyroMag;
+
+                        float motionDifference =
+                             Mathf.Abs(qGyroMag - iGyroMag);
+
+                        Debug.Log("GYRO PARITY | Quest and IMU motion amount compared");
+
+                        _currentMotionDifference = motionDifference;
+
+                        Debug.Log(
+                            $"GYRO PARITY | Motion difference calculated | " +
+                            $"|{qGyroMag:F3} - {iGyroMag:F3}| = {motionDifference:F3} rad/s"
+                        );
+
+                        float currentPitchOffset =
+                             Mathf.DeltaAngle(-_r, questPitch);
+
+                        float currentRollOffset =
+                             Mathf.DeltaAngle(-_p, questRoll);
+
+                        float pitchOffsetError = Mathf.Abs(
+                             Mathf.DeltaAngle(_trustedPitchOffset, currentPitchOffset)
+                         );
+
+                        float rollOffsetError = Mathf.Abs(
+                             Mathf.DeltaAngle(_trustedRollOffset, currentRollOffset)
+                         );
+
+                        bool mountingOrientationValid =
+                             !_haveTrustedOrientationOffset ||
+                             (pitchOffsetError <= attachmentPitchToleranceDeg &&
+                             rollOffsetError <= attachmentRollToleranceDeg);
+
+                        if (mountingOrientationValid)
+                        {
+                            Debug.Log("GYRO PARITY | mounting orientation is valid");
+                        }
+                        else
+                        {
+                            Debug.Log("GYRO PARITY | mounting orientation is invalid");
+                        }
+
+                        _currentPitchOffsetError = pitchOffsetError;
+                        _currentRollOffsetError = rollOffsetError;
+                        _currentMountingOrientationValid =
+                             mountingOrientationValid;
+
+                        if (!_parityBuilt)
+                        {
+                            bool attachmentEvidenceValid =
+                                mountingOrientationValid &&
+                                motionDifference <= maxMotionDifference;
+
+                            if (attachmentEvidenceValid)
                             {
-                                if (_noMotionStartTime < 0f)
-                                    _noMotionStartTime = Time.unscaledTime;
-
-                                float noMotionElapsed =
-                                    Time.unscaledTime - _noMotionStartTime;
-
-                                if (noMotionElapsed >= noMotionGraceSeconds)
-                                {
-                                    _confidence -= noMotionLossPerSecond * gyroElapsedSeconds;
-                                }
+                                Debug.Log(
+                                    "GYRO PARITY | reattachment evidence is valid"
+                                );
+                                _orientationValidTimer += gyroScoreEverySeconds;
                             }
                             else
                             {
-                                // Motion has resumed, so reset inactivity timer
-                                _noMotionStartTime = -1f;
+                                Debug.Log(
+                                    "GYRO PARITY | reattachment evidence is invalid, confirmation timer reset"
+                                );
+                                _orientationValidTimer = 0f;
+                            }
+                        }
 
-                                if (_gyroScore >= gyroBuildThreshold)
+                        else
+                        {
+                            _orientationValidTimer = 0f;
+                        }
+
+                        Debug.Log(
+                             $"MOUNT CHECK | valid={mountingOrientationValid} " +
+                             $"pitchErr={pitchOffsetError:F1} " +
+                             $"rollErr={rollOffsetError:F1} " +
+                             $"timer={_orientationValidTimer:F1}");
+
+                        if (_detachmentLockout &&
+                         mountingOrientationValid &&
+                         _orientationValidTimer >= attachmentConfirmSeconds)
+                        {
+                            _detachmentLockout = false;
+                            Debug.Log(
+                                "GYRO PARITY | IMU reattachment confirmed, detachment lockout cleared"
+                            );
+                            _confidence = 0f;
+
+                            Debug.Log(
+                                "DETACHMENT LOCKOUT CLEARED by stable pitch/roll alignment");
+                        }
+
+                        float imuAge = Time.time - _lastImuGyroAt;
+
+                        Debug.Log(
+                         $"GYRO RAW | age={imuAge:F2}s " +
+                         $"score={_gyroScore:F2} " +
+                         $"qMag={qGyroMag:F2} " +
+                         $"iMag={iGyroMag:F2}");
+
+                        bool questActive = qGyroMag >= gyroQuestActiveRadPerSec;
+                        bool imuActive = iGyroMag >= gyroImuActiveRadPerSec;
+
+                        if (questActive && imuActive)
+                        {
+                            Debug.Log("GYRO PARITY | both Quest and IMU are actively moving");
+                        }
+                        else if (questActive && !imuActive)
+                        {
+                            Debug.Log("GYRO PARITY | Quest is moving but IMU is quiet");
+                        }
+                        else if (!questActive && imuActive)
+                        {
+                            Debug.Log("GYRO PARITY | IMU is moving but Quest is quiet");
+                        }
+                        else
+                        {
+                            Debug.Log("GYRO PARITY | both Quest and IMU have very little motion");
+                        }
+
+                        bool enoughMotionForScoring =
+                            qGyroMag >= minEvidenceMotion ||
+                            iGyroMag >= minEvidenceMotion;
+
+                        _currentEnoughMotionForScoring =
+                                enoughMotionForScoring;
+
+                        Debug.Log(
+                            enoughMotionForScoring
+                                ? "GYRO PARITY | enough motion is available for reliable scoring"
+                                : "GYRO PARITY | not enough motion is available for reliable scoring"
+                        );
+                        _currentQuestActive = questActive;
+                        _currentImuActive = imuActive;
+
+                        Debug.Log(
+                         $"ACTIVE? quest={questActive} imu={imuActive} " +
+                         $"qMag={qGyroMag:F2} iMag={iGyroMag:F2}");
+
+                        bool oneSidedGyroMismatch = false;
+
+                        Debug.Log(
+                            $"GYRO PARITY | score={_gyroScore:F2} " +
+                            $"qMag={qGyroMag:F2} iMag={iGyroMag:F2} " +
+                            $"diff={motionDifference:F2} " +
+                            $"conf={_confidence:F2}");
+
+                        bool oneSidedMotion = questActive != imuActive;
+
+                        bool detachedMotion =
+                            oneSidedMotion &&
+                            motionDifference >= detachedDifferenceThreshold;
+
+                        // bool detachedMotion =
+                        //      qGyroMag >= gyroQuestActiveRadPerSec &&
+                        //      iGyroMag < gyroImuActiveRadPerSec &&
+                        //      motionDifference >= detachedDifferenceThreshold;
+
+                        _currentDetachedMotion = detachedMotion;
+
+                        if (_parityBuilt && detachedMotion)
+                        {
+                            if (_detachWarningStartTime < 0f)
+                            {
+                                _detachWarningStartTime = Time.unscaledTime;
+
+                                Debug.Log(
+                                "GYRO PARITY | detachment warning started"
+                            );
+
+                                // Put confidence into warning range
+                                _confidence = Mathf.Min(_confidence, almostLostThreshold);
+
+                                if (uiPanelActions != null)
+                                    uiPanelActions.ShowParityLosingUI();
+                            }
+
+                            float warningElapsed =
+                                Time.unscaledTime - _detachWarningStartTime;
+
+                            Debug.Log(
+                                "GYRO PARITY | detachment condition is still present, warning timer is running"
+                            );
+
+                            if (warningElapsed >= detachWarningSeconds)
+                            {
+                                Debug.Log(
+                                    "GYRO PARITY | IMU detachment confirmed, parity is lost"
+                                );
+                                _confidence = 0f;
+                                _parityBuilt = false;
+
+                                XRDeviceLogger.Instance?.SetParityEstablished(false);
+
+                                _pendingMatchedUi = false;
+                                _reauthRequired = true;
+
+                                if (uiPanelActions != null)
+                                    uiPanelActions.HideParityLosingUI();
+
+                                if (SceneFlow.Instance != null)
+                                    SceneFlow.Instance.ShowContinuousAuthUI();
+                                else if (uiPanelActions != null)
+                                    uiPanelActions.ShowContinuousAuth();
+
+                                UpdateParityUIState();
+                            }
+                        }
+                        else
+                        {
+                            _detachWarningStartTime = -1f;
+                        }
+
+                        bool tooFastMotion = qGyroMag > 2.5f || iGyroMag > 2.5f;
+                        _currentTooFastMotion = tooFastMotion;
+
+                        bool bothQuiet = false;
+
+                        _currentBothQuiet = false;
+
+                        if (tooFastMotion)
+                        {
+                            _currentConfidenceRate = 0f;
+
+                            _currentConfidenceAction =
+                                "HOLD - motion too fast for reliable scoring";
+
+                            Debug.Log(
+                                $"GYRO PARITY | too fast for reliable scoring | " +
+                                $"score={_gyroScore:F2} conf={_confidence:F2}");
+
+                            // Hold confidence
+                            _oneSidedBadCount = 0;
+                        }
+                        else if (bothQuiet)
+                        {
+                            Debug.Log("GYRO PARITY | both quiet, holding confidence");
+                            _lastBothQuietAt = Time.time;
+                            _oneSidedBadCount = 0;
+                        }
+                        else if (oneSidedGyroMismatch)
+                        {
+                            bool justStartedMoving = Time.time - _lastBothQuietAt < 0.25f;
+
+                            if (justStartedMoving)
+                            {
+                                Debug.Log("GYRO PARITY | movement just started, ignoring first mismatch");
+                                _oneSidedBadCount = 0;
+                            }
+                            else
+                            {
+                                _oneSidedBadCount++;
+
+                                if (_oneSidedBadCount >= 1)
                                 {
-                                    _confidence += gyroGainPerSecond * gyroElapsedSeconds;
+                                    _confidence -= gyroMismatchLossPerSecond * gyroElapsedSeconds;
+                                    _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+                                    UpdateParityUIState();
                                 }
-                                else if (_gyroScore < gyroLoseThreshold)
+                            }
+                        }
+                        else
+                        {
+                            _oneSidedBadCount = 0;
+
+                            if (_detachmentLockout)
+                            {
+                                // IMU was previously detached.
+                                // Do not allow parity to rebuild from matching hand movement.
+                                _confidence = 0f;
+
+                                Debug.Log(
+                                    "GYRO PARITY | rebuild blocked because IMU detach lockout is active");
+                            }
+
+                            else
+                            {
+                                if (!enoughMotionForScoring)
                                 {
-                                    _confidence -= gyroLossPerSecond * gyroElapsedSeconds;
+                                    Debug.Log(
+                                        "GYRO PARITY | insufficient motion detected"
+                                    );
+
+                                    if (_noMotionStartTime < 0f)
+                                        _noMotionStartTime = Time.unscaledTime;
+
+                                    float noMotionElapsed =
+                                        Time.unscaledTime - _noMotionStartTime;
+
+                                    if (noMotionElapsed >= noMotionGraceSeconds)
+                                    {
+                                        _currentConfidenceRate =
+                                            -noMotionLossPerSecond;
+
+                                        _currentConfidenceAction =
+                                            "DECREASE - no motion exceeded grace period";
+
+                                        Debug.Log(
+                                            "GYRO PARITY | no motion continued beyond grace period, confidence is decreasing"
+                                        );
+
+                                        _confidence -=
+                                            noMotionLossPerSecond *
+                                            gyroElapsedSeconds;
+                                    }
+                                    else
+                                    {
+                                        _currentConfidenceRate = 0f;
+
+                                        _currentConfidenceAction =
+                                            "HOLD - inside no-motion grace period";
+
+                                        Debug.Log(
+                                            "GYRO PARITY | inside no-motion grace period"
+                                        );
+                                    }
                                 }
+
                                 else
                                 {
-                                    if (!_parityBuilt)
+                                    Debug.Log(
+                                        "GYRO PARITY | motion resumed, normal gyro scoring continues"
+                                    );
+                                    // Motion has resumed, so reset inactivity timer
+                                    _noMotionStartTime = -1f;
+
+                                    //*********IMPORTANT CALCULATION***************
+
+                                    if (_gyroScore >= gyroBuildThreshold)
                                     {
+                                        _currentConfidenceRate =
+                                            gyroGainPerSecond;
+
+                                        _currentConfidenceAction =
+                                            "INCREASE - gyro score reached build threshold";
+
+                                        Debug.Log(
+                                            "GYRO PARITY | gyro score is good, confidence is increasing"
+                                        );
+
+                                        _confidence +=
+                                            gyroGainPerSecond *
+                                            gyroElapsedSeconds;
+                                    }
+
+                                    else if (_gyroScore < gyroLoseThreshold)
+                                    {
+                                        _currentConfidenceRate =
+                                            -gyroLossPerSecond;
+
+                                        _currentConfidenceAction =
+                                            "DECREASE - gyro score is below lose threshold";
+
+                                        Debug.Log(
+                                            "GYRO PARITY | gyro score is low, confidence is decreasing"
+                                        );
+
                                         _confidence -=
-                                            gyroUncertainLossPerSecond * gyroElapsedSeconds;
+                                            gyroLossPerSecond *
+                                            gyroElapsedSeconds;
+                                    }
+                                    else
+                                    {
+                                        if (!_parityBuilt)
+                                        {
+                                            _currentConfidenceRate =
+                                                -gyroUncertainLossPerSecond;
+
+                                            _currentConfidenceAction =
+                                                "DECREASE SLOWLY - gyro score is uncertain";
+
+                                            Debug.Log(
+                                                "GYRO PARITY | gyro score is uncertain, confidence is decreasing slowly"
+                                            );
+
+                                            _confidence -=
+                                                gyroUncertainLossPerSecond *
+                                                gyroElapsedSeconds;
+                                        }
+
+                                        else
+                                        {
+                                            _currentConfidenceRate = 0f;
+
+                                            _currentConfidenceAction =
+                                                "HOLD - gyro score uncertain but parity already established";
+
+                                            Debug.Log(
+                                                "GYRO PARITY | gyro score is uncertain, but parity is already established"
+                                            );
+                                        }
                                     }
                                 }
                             }
+                        }
+
+                        _currentConfidenceBeforeClamp = _confidence;
+
+                        _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
+
+                        _currentConfidenceDelta = _confidence - _currentPreviousConfidence;
+
+                        UpdateParityUIState();
+
+                        //    if ( !_parityBuilt &&
+                        //         !_detachmentLockout &&
+                        //         mountingOrientationValid &&
+                        //         _orientationValidTimer >= attachmentConfirmSeconds &&
+                        //         _confidence >= buildThreshold)
+
+                        bool motionDifferenceValid =
+                             _currentMotionDifference <= maxMotionDifference;
+
+                        bool attachmentReady =
+                             !_detachmentLockout ||
+                             (
+                                 mountingOrientationValid &&
+                                 motionDifferenceValid &&
+                                 _orientationValidTimer >= attachmentConfirmSeconds
+                             );
+
+                        _currentMotionDifferenceValid = motionDifferenceValid;
+                        _currentAttachmentReady = attachmentReady;
+
+                        if (attachmentReady)
+                        {
+                            Debug.Log(
+                                "GYRO PARITY | attachment conditions allow parity to build"
+                            );
+                        }
+                        else
+                        {
+                            Debug.Log(
+                                "GYRO PARITY | attachment conditions are blocking parity build"
+                            );
+                        }
+
+                        if (!_parityBuilt &&
+                            attachmentReady &&
+                            _confidence >= buildThreshold)
+                        {
+                            bool wasReestablishing = _parityEverBuilt;
+                            _confidence = buildThreshold;
+
+                            // Save the mounting orientation only during the first trusted build.
+                            if (!_haveTrustedOrientationOffset)
+                            {
+                                _trustedPitchOffset =
+                                    Mathf.DeltaAngle(-_r, questPitch);
+
+                                _trustedRollOffset =
+                                    Mathf.DeltaAngle(-_p, questRoll);
+
+                                _haveTrustedOrientationOffset = true;
+
+                                Debug.Log(
+                                    $"TRUSTED MOUNT OFFSET SAVED | " +
+                                    $"pitch={_trustedPitchOffset:F1} " +
+                                    $"roll={_trustedRollOffset:F1}");
+                            }
+
+                            _parityBuilt = true;
+                            _parityEverBuilt = true;
+                            _reauthRequired = false;
+
+                            Debug.Log(
+                                "GYRO PARITY | confidence reached the build threshold, parity is established"
+                            );
+
+                            // Parity is restored — clear any warning UI
+                            _almostLostShowing = false;
+                            _detachWarningStartTime = -1f;
+
+                            if (uiPanelActions != null)
+                            {
+                                uiPanelActions.HideParityLosingUI();
+                            }
+
+                            XRDeviceLogger.Instance?.SetParityEstablished(true);
+
+                            Debug.Log("Parity established. XR data recording started.");
+
+                            Debug.Log("HeadsetMotion: MATCHED by GYRO");
+
+                            _lastParityEvent = "PARITY ESTABLISHED";
+                            _lastParityReason =
+                                $"Gyro score {_gyroScore:F3}, " +
+                                $"confidence {_confidence:F3}, " +
+                                $"mount valid={mountingOrientationValid}";
+
+                            _lastParityEventTime =
+                                DateTime.Now.ToString("HH:mm:ss.fff");
+
+                            if (parityEventLogger != null)
+                            {
+                                float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
+
+                                float imuYawQ = -_y;
+                                float imuPitchQ = -_r;
+                                float imuRollQ = -_p;
+
+                                parityEventLogger.LogEvent(
+                                    "BUILT",
+                                    trialTime,
+                                    questYaw, questPitch, questRoll,
+                                    imuYawQ, imuPitchQ, imuRollQ,
+                                    _confidence,
+                                    0f, // legacy cosine field intentionally unused
+
+                                    _gyroScore,
+                                    _lastParityReason
+                                );
+                            }
+
+                            if (SceneFlow.Instance != null)
+                            {
+                                if (wasReestablishing)
+                                    SceneFlow.Instance.RestoreCurrentSceneAfterParity();
+                                else
+                                    SceneFlow.Instance.OpenContentScene("Lobby");
+                            }
+
+                            _pendingMatchedUi = true;
+                            _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
+                        }
+                        else if (_parityBuilt && _confidence <= loseThreshold)
+                        {
+                            Debug.Log(
+                                "GYRO PARITY | confidence reached the lose threshold, parity is lost"
+                            );
+
+                            _parityBuilt = false;
+                            XRDeviceLogger.Instance?.SetParityEstablished(false);
+                            _pendingMatchedUi = false;
+                            _reauthRequired = true;
+
+                            Debug.Log("HeadsetMotion: LOST by GYRO");
+
+                            _lastParityEvent = "PARITY LOST";
+                            _lastParityReason =
+                                $"Confidence {_confidence:F3} reached " +
+                                $"lose threshold {loseThreshold:F3}; " +
+                                $"gyro score={_gyroScore:F3}";
+
+                            _lastParityEventTime =
+                                DateTime.Now.ToString("HH:mm:ss.fff");
+
+                            if (parityEventLogger != null)
+                            {
+                                float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
+
+                                float imuYawQ = -_y;
+                                float imuPitchQ = -_r;
+                                float imuRollQ = -_p;
+
+                                parityEventLogger.LogEvent(
+                                    "LOST",
+                                    trialTime,
+                                    questYaw, questPitch, questRoll,
+                                    imuYawQ, imuPitchQ, imuRollQ,
+                                    _confidence,
+                                    0f, // legacy cosine field intentionally unused
+
+                                    _gyroScore,
+                                    _lastParityReason
+                                );
+                            }
+
+                            if (SceneFlow.Instance != null)
+                                SceneFlow.Instance.ShowContinuousAuthUI();
+                            else if (uiPanelActions != null)
+                                uiPanelActions.ShowContinuousAuth();
+
+                            UpdateParityUIState();
+                        }
+
                     }
                 }
-
-               _confidence = Mathf.Clamp(_confidence, 0f, buildThreshold);
-               UpdateParityUIState();
-
-            //    if ( !_parityBuilt &&
-            //         !_detachmentLockout &&
-            //         mountingOrientationValid &&
-            //         _orientationValidTimer >= attachmentConfirmSeconds &&
-            //         _confidence >= buildThreshold)
-
-               bool motionDifferenceValid =
-                    _currentMotionDifference <= maxMotionDifference;
-
-               bool attachmentReady =
-                    !_detachmentLockout ||
-                    (
-                        mountingOrientationValid &&
-                        motionDifferenceValid &&
-                        _orientationValidTimer >= attachmentConfirmSeconds
-                    );
-
-               if (!_parityBuilt &&
-                   attachmentReady &&
-                   _confidence >= buildThreshold)
-               {
-                bool wasReestablishing = _parityEverBuilt;
-                _confidence = buildThreshold;
-
-                // Save the mounting orientation only during the first trusted build.
-                if (!_haveTrustedOrientationOffset)
-                {
-                    _trustedPitchOffset =
-                        Mathf.DeltaAngle(-_r, questPitch);
-
-                    _trustedRollOffset =
-                        Mathf.DeltaAngle(-_p, questRoll);
-
-                    _haveTrustedOrientationOffset = true;
-
-                    Debug.Log(
-                        $"TRUSTED MOUNT OFFSET SAVED | " +
-                        $"pitch={_trustedPitchOffset:F1} " +
-                        $"roll={_trustedRollOffset:F1}");
-                }
-
-                _parityBuilt = true;
-                _parityEverBuilt = true;
-                _reauthRequired = false;
-
-                // Parity is restored — clear any warning UI
-                _almostLostShowing = false;
-                _detachWarningStartTime = -1f;
-
-                if (uiPanelActions != null)
-                {
-                    uiPanelActions.HideParityLosingUI();
-                }
-
-                XRDeviceLogger.Instance?.SetParityEstablished(true);
-
-                Debug.Log("Parity established. XR data recording started.");
-
-                Debug.Log("HeadsetMotion: MATCHED by GYRO");
-
-                _lastParityEvent = "PARITY ESTABLISHED";
-                _lastParityReason =
-                    $"Gyro score {_gyroScore:F3}, " +
-                    $"confidence {_confidence:F3}, " +
-                    $"mount valid={mountingOrientationValid}";
-
-                _lastParityEventTime =
-                    DateTime.Now.ToString("HH:mm:ss.fff");
-
-                if (parityEventLogger != null)
-                {
-                    float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
-
-                    float imuYawQ = -_y;
-                    float imuPitchQ = -_r;
-                    float imuRollQ = -_p;
-
-                    parityEventLogger.LogEvent(
-                        "BUILT",
-                        trialTime,
-                        questYaw, questPitch, questRoll,
-                        imuYawQ, imuPitchQ, imuRollQ,
-                        _confidence,
-                        _lastParityCos,
-                        _gyroScore,
-                        _lastParityReason
-                    );
-                }
-
-                if (SceneFlow.Instance != null)
-                {
-                    if (wasReestablishing)
-                        SceneFlow.Instance.RestoreCurrentSceneAfterParity();
-                    else
-                        SceneFlow.Instance.OpenContentScene("Lobby");
-                }
-
-                _pendingMatchedUi = true;
-                _pendingMatchedUiAt = Time.time + matchedUiDelaySeconds;
-               }
-               else if (_parityBuilt && _confidence <= loseThreshold)
-               {
-                _parityBuilt = false;
-                XRDeviceLogger.Instance?.SetParityEstablished(false);
-                _pendingMatchedUi = false;
-                _reauthRequired = true;
-
-                Debug.Log("HeadsetMotion: LOST by GYRO");
-
-                _lastParityEvent = "PARITY LOST";
-                _lastParityReason =
-                    $"Confidence {_confidence:F3} reached " +
-                    $"lose threshold {loseThreshold:F3}; " +
-                    $"gyro score={_gyroScore:F3}";
-
-                _lastParityEventTime =
-                    DateTime.Now.ToString("HH:mm:ss.fff");
-
-                if (parityEventLogger != null)
-                {
-                    float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
-
-                    float imuYawQ = -_y;
-                    float imuPitchQ = -_r;
-                    float imuRollQ = -_p;
-
-                    parityEventLogger.LogEvent(
-                        "LOST",
-                        trialTime,
-                        questYaw, questPitch, questRoll,
-                        imuYawQ, imuPitchQ, imuRollQ,
-                        _confidence,
-                        _lastParityCos,
-                        _gyroScore,
-                        _lastParityReason
-                    );
-                }
-
-                if (SceneFlow.Instance != null)
-                    SceneFlow.Instance.ShowContinuousAuthUI();
-                else if (uiPanelActions != null)
-                    uiPanelActions.ShowContinuousAuth();
-
-                UpdateParityUIState();
-               }
-            
             }
-       }             
-    }
-}
+        }
         if (rowGyroText)
         {
             string f2 = $"F{Mathf.Clamp(decimals, 0, 5)}";
@@ -1512,36 +1604,6 @@ public class HeadsetMotion : MonoBehaviour
             rowGyroText.text =
                 $"GYRO  | Score: {s}   (x:{_gyroScoreX.ToString(f2)} y:{_gyroScoreY.ToString(f2)} z:{_gyroScoreZ.ToString(f2)})";
         }
-
-        // ---------------- CSV row write ----------------
-        // if (csvLogger != null && csvLogger.ShouldWriteRow(Time.time))
-        // {
-        //     bool haveQuestNow = haveQuest;
-        //     bool haveImuNow = _haveP && _haveR && _haveY;
-
-        //     if (haveQuestNow && haveImuNow)
-        //     {
-        //         float imuYawQ = -_y;
-        //         float imuPitchQ = -_r;
-        //         float imuRollQ = -_p;
-
-        //         float dy = Mathf.DeltaAngle(imuYawQ, questYaw);
-        //         float dp = Mathf.DeltaAngle(imuPitchQ, questPitch);
-        //         float dr = Mathf.DeltaAngle(imuRollQ, questRoll);
-
-        //         float trialTime = _trialRunning ? (Time.time - _trialStartTime) : 0f;
-
-        //         csvLogger.WriteRow(
-        //             trialTime,
-        //             questYaw, questPitch, questRoll,
-        //             _p, _r, _y,
-        //             imuPitchQ, imuYawQ, imuRollQ,
-        //             dy, dp, dr,
-        //             _parityBuilt,
-        //             _lastParityCos
-        //         );
-        //     }
-        // }
 
         if (parityEventLogger != null)
         {
@@ -1556,7 +1618,8 @@ public class HeadsetMotion : MonoBehaviour
                 questYaw, questPitch, questRoll,
                 imuYawQ, imuPitchQ, imuRollQ,
                 _confidence,
-                _lastParityCos,
+                0f, // legacy cosine field intentionally unused
+
                 _gyroScore
             );
         }
@@ -1584,8 +1647,8 @@ public class HeadsetMotion : MonoBehaviour
             _parityLostCountdownRunning = false;
             _parityLostTimer = 0f;
         }
-     
-       // -------- timeout countdown text --------
+
+        // -------- timeout countdown text --------
         if (trulyLost)
         {
             if (_reauthRequired && !_parityBuilt)
@@ -1597,48 +1660,52 @@ public class HeadsetMotion : MonoBehaviour
 
     void UpdateParityUIState()
     {
-      if (_parityBuilt && _confidence <= almostLostThreshold && _confidence > loseThreshold)
-     {
-        if (!_almostLostShowing)
+        if (_parityBuilt && _confidence <= almostLostThreshold && _confidence > loseThreshold)
         {
-            _almostLostShowing = true;
+            if (!_almostLostShowing)
+            {
+                _almostLostShowing = true;
 
-            if (uiPanelActions != null)
-                uiPanelActions.ShowParityLosingUI();
+                if (uiPanelActions != null)
+                    uiPanelActions.ShowParityLosingUI();
+            }
         }
-     }
-     else
-     {
-        if (_almostLostShowing)
-        {
-            _almostLostShowing = false;
-
-            if (uiPanelActions != null)
-                uiPanelActions.HideParityLosingUI();
-        }
-     }
-
-     if (parityText)
-     {
-        if (_parityBuilt)
-            parityText.text = $"PARITY | BUILT (gyro:{_gyroScore:F2})";
-        else if (_confidence <= loseThreshold)
-            parityText.text = $"PARITY | LOST (gyro:{_gyroScore:F2})";
         else
-            parityText.text = $"PARITY | SAMPLING (gyro:{_gyroScore:F2})";
-     }
+        {
+            if (_almostLostShowing)
+            {
+                _almostLostShowing = false;
 
-     if (_parityBuilt)
-        SetState(MotionState.Matched);
-     else if (_parityEverBuilt && _confidence <= loseThreshold)
-        SetState(MotionState.NotMatched);
-     else
-        SetState(MotionState.Sampling);
+                if (uiPanelActions != null)
+                    uiPanelActions.HideParityLosingUI();
+            }
+        }
+
+        if (parityText)
+        {
+            if (_parityBuilt)
+                parityText.text = $"PARITY | BUILT (gyro:{_gyroScore:F2})";
+            else if (_confidence <= loseThreshold)
+                parityText.text = $"PARITY | LOST (gyro:{_gyroScore:F2})";
+            else
+                parityText.text = $"PARITY | SAMPLING (gyro:{_gyroScore:F2})";
+        }
+
+        if (_parityBuilt)
+            SetState(MotionState.Matched);
+        else if (_parityEverBuilt && _confidence <= loseThreshold)
+            SetState(MotionState.NotMatched);
+        else
+            SetState(MotionState.Sampling);
     }
-    
+
     // ---------- Reset (button) ----------
     public void OnResetClicked()
     {
+        Debug.Log(
+            "GYRO PARITY | reset started"
+        );
+
         // 1) zero QUEST row
         if (TryGetHmdRotation(out var rot) || (Camera.main && (rot = Camera.main.transform.rotation) != Quaternion.identity))
         {
@@ -1659,10 +1726,6 @@ public class HeadsetMotion : MonoBehaviour
         // parity reset
         _parityBuilt = false;
         _confidence = 0f;
-        _lastParityCos = 0f;
-        _havePrevQuest = _havePrevImu = false;
-        _imuYprUpdated = false;
-
         // User should press Reset only after physically attaching the IMU again. // DO not have a reset button now
         //_detachmentLockout = false; 
         _detachedTimer = 0f;
@@ -1689,12 +1752,12 @@ public class HeadsetMotion : MonoBehaviour
         // }
         if (parityEventLogger != null)
         {
-        parityEventLogger.StopLogging();   // closes previous file if any
-        parityEventLogger.StartLogging();
+            parityEventLogger.StopLogging();   // closes previous file if any
+            parityEventLogger.StartLogging();
         }
         // Start trial timer
         _trialStartTime = Time.time;
-        _trialRunning = true;  
+        _trialRunning = true;
 
         if (progressBar != null)
         {
@@ -1708,6 +1771,10 @@ public class HeadsetMotion : MonoBehaviour
         _parityLostCountdownRunning = false;
         _parityEverBuilt = false;
         _reauthRequired = false;
+
+        Debug.Log(
+            "GYRO PARITY | reset completed"
+        );
     }
 
     public void PauseFSM()
@@ -1724,15 +1791,17 @@ public class HeadsetMotion : MonoBehaviour
     {
         authVerified = value;
 
+        Debug.Log(
+            authVerified
+                ? "GYRO PARITY | user authentication verified, continuous authentication enabled"
+                : "GYRO PARITY | user authentication removed, continuous authentication stopped"
+        );
+
         if (!authVerified)
         {
             _parityBuilt = false;
             XRDeviceLogger.Instance?.SetParityEstablished(false);
             _confidence = 0f;
-            _lastParityCos = 0f;
-            _havePrevQuest = false;
-            _havePrevImu = false;
-            _imuYprUpdated = false;
             _pendingMatchedUi = false;
             _parityEverBuilt = false;
             _reauthRequired = false;
@@ -1789,23 +1858,31 @@ public class HeadsetMotion : MonoBehaviour
         return false;
     }
 
-    float AvgGyroMag(List<Sample> buf, float seconds)
+    float AvgGyroMag(
+    List<Sample> buf,
+    float seconds,
+    out int sampleCount)
     {
-    float now = Time.time;
-    float sum = 0f;
-    int count = 0;
+        float now = Time.time;
+        float sum = 0f;
+        int count = 0;
 
-    for (int i = buf.Count - 1; i >= 0; i--)
-    {
-        if (now - buf[i].t > seconds)
-            break;
+        for (int i = buf.Count - 1; i >= 0; i--)
+        {
+            if (now - buf[i].t > seconds)
+                break;
 
-        sum += buf[i].v.magnitude;
-        count++;
-    }
+            sum += buf[i].v.magnitude;
+            count++;
+        }
 
-    if (count == 0) return 0f;
-    return sum / count;
+        // Expose the exact number of samples used
+        sampleCount = count;
+
+        if (count == 0)
+            return 0f;
+
+        return sum / count;
     }
 
     static void TrimOld(List<Sample> buf, float tMin)
@@ -1821,20 +1898,30 @@ public class HeadsetMotion : MonoBehaviour
     }
 
     // Computes correlation on synchronized-by-time sampling (simple nearest-neighbor)
-    void ComputeGyroScore(out float score, out float sx, out float sy, out float sz)
+    void ComputeGyroScore(
+    out float score,
+    out float sx,
+    out float sy,
+    out float sz,
+    out int matchedPairCount)
     {
+        matchedPairCount = 0;
+
         var Q = _questGyroBuf;
         var E = _espGyroBuf;
+
         if (Q.Count < 10 || E.Count < 10) { score = sx = sy = sz = 0f; return; }
 
         float t0 = Mathf.Max(Q[0].t, E[0].t);
         float t1 = Mathf.Min(Q[Q.Count - 1].t, E[E.Count - 1].t);
+
         if (t1 <= t0) { score = sx = sy = sz = 0f; return; }
 
         List<Vector3> qList = new List<Vector3>(Q.Count);
         List<Vector3> eList = new List<Vector3>(Q.Count);
 
         int ei = 0;
+
         for (int qi = 0; qi < Q.Count; qi++)
         {
             float tq = Q[qi].t;
@@ -1854,6 +1941,8 @@ public class HeadsetMotion : MonoBehaviour
             eList.Add(E[best].v);
         }
 
+        matchedPairCount = qList.Count;
+
         if (qList.Count < 20) { score = sx = sy = sz = 0f; return; }
 
         sx = CorrAxis(qList, eList, 0);
@@ -1861,6 +1950,12 @@ public class HeadsetMotion : MonoBehaviour
         sz = CorrAxis(qList, eList, 2);
 
         score = (Mathf.Abs(sx) + Mathf.Abs(sy) + Mathf.Abs(sz)) / 3f;
+
+        Debug.Log(
+            "GYRO PARITY | X, Y and Z correlations calculated and combined into final gyro score | " +
+            $"X = {sx:F3} | Y = {sy:F3} | Z = {sz:F3} | " +
+            $"Final Score: (|X| + |Y| + |Z|) / 3 = {score:F3}"
+        );
     }
 
     static float CorrAxis(List<Vector3> a, List<Vector3> b, int axis)

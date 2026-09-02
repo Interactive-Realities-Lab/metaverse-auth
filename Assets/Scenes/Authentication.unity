@@ -14891,7 +14891,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devEchoToUI: 0
-  deviceIp: 192.168.0.103
+  deviceIp: 192.168.0.106
   port: 83
   wsPath: /
   enableImu: 1
@@ -49135,22 +49135,13 @@ MonoBehaviour:
   rowDeltaText: {fileID: 1880142531}
   parityText: {fileID: 488999140}
   otpHandler: {fileID: 1692041948}
-  parityCheckEverySeconds: 0.2
-  parityCosThreshold: 0.6
-  parityMinMotionDeg: 2
-  oneSidedMotionDeg: 4
-  oneSidedBadChecksToPunish: 3
-  oneSidedStepDown: 0.03
-  oneSidedDifferenceThreshold: 0.2
   maxMotionDifference: 0.2
   attachmentPitchToleranceDeg: 10
   attachmentRollToleranceDeg: 10
   attachmentConfirmSeconds: 2
   matchedUiDelaySeconds: 0.4
-  buildThreshold: 1
+  buildThreshold: 0.7
   loseThreshold: 0.1
-  stepUp: 0.15
-  stepDown: 0.03
   authVerified: 0
   controlUIFeedback: {fileID: 1541340626}
   progressBar: {fileID: 1760860039}
@@ -49181,6 +49172,7 @@ MonoBehaviour:
   gyroLossPerSecond: 0.08
   gyroMismatchLossPerSecond: 0.32
   gyroUncertainLossPerSecond: 0.02
+  gyroAverageWindowSeconds: 0.7
   speedFeedbackText: {fileID: 1472538520}
   minGoodSpeed: 0.1
   maxGoodSpeed: 2.5
