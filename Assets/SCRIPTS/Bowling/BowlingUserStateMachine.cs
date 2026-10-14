@@ -6,7 +6,6 @@ public class BowlingUserStateMachine : MonoBehaviour
     {
         Idle,
         Reaching,
-        Grabbing,
         Holding,
         Throwing,
         PostThrow
@@ -42,11 +41,6 @@ public class BowlingUserStateMachine : MonoBehaviour
     public void StartReaching()
     {
         ChangeState(UserState.Reaching);
-    }
-
-    public void StartGrabbing()
-    {
-        ChangeState(UserState.Grabbing);
     }
 
     public void StartHolding()

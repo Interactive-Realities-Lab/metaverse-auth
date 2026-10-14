@@ -15,6 +15,17 @@ public class BowlingUserActivityDetector : MonoBehaviour
     [Header("Reaching Detection")]
     [SerializeField] private float reachingDistance = 0.5f;
 
+    [Header("Throw Detection")]
+    [SerializeField] private float throwingSpeedThreshold = 0.8f;
+
+    [SerializeField] private float throwingConfirmationTime = 0.10f;
+
+    private Vector3 previousHandPosition;
+
+    private float throwingTimer = 0f;
+
+    private bool handPositionInitialized = false;
+
     [Header("Post Throw")]
     [SerializeField] private float postThrowDuration = 1.0f;
 
@@ -141,6 +152,8 @@ public class BowlingUserActivityDetector : MonoBehaviour
     {
         DetectReaching();
 
+        DetectThrowing();
+
         // Temporary PostThrow -> Idle rule
         if (stateMachine.CurrentState ==
             BowlingUserStateMachine.UserState.PostThrow)
@@ -237,6 +250,10 @@ public class BowlingUserActivityDetector : MonoBehaviour
 
         isHolding = true;
 
+        // Reset throwing detection
+        throwingTimer = 0f;
+        handPositionInitialized = false;
+
         // Determine which XR interactor grabbed the ball.
         Transform interactorTransform =
             args.interactorObject.transform;
@@ -258,24 +275,93 @@ public class BowlingUserActivityDetector : MonoBehaviour
             ? ActiveHand.Left
             : ActiveHand.Right;
 
-
-        // Grab event
-        stateMachine.StartGrabbing();
-
-        Debug.Log($"USER STATE -> Grabbing ({CurrentHand})");
-
         // For now, immediately transition to Holding.
         stateMachine.StartHolding();
 
         Debug.Log($"USER STATE -> Holding ({CurrentHand})");
     }
 
+    private void DetectThrowing()
+    {
+        // Only detect throwing while the user holds the ball
+        if (!isHolding)
+            return;
+
+        // Only transition from Holding to Throwing
+        if (stateMachine.CurrentState !=
+            BowlingUserStateMachine.UserState.Holding)
+            return;
+
+        Transform activeController = null;
+
+        // Determine which controller is holding the ball
+        if (CurrentHand == ActiveHand.Left)
+        {
+            activeController = leftController;
+        }
+        else if (CurrentHand == ActiveHand.Right)
+        {
+            activeController = rightController;
+        }
+
+        if (activeController == null)
+            return;
+
+        Vector3 currentPosition = activeController.position;
+
+        // Initialize previous position
+        if (!handPositionInitialized)
+        {
+            previousHandPosition = currentPosition;
+            handPositionInitialized = true;
+            return;
+        }
+
+        float dt = Time.deltaTime;
+
+        if (dt <= 0f)
+            return;
+
+        // Calculate controller velocity
+        Vector3 velocity =
+            (currentPosition - previousHandPosition) / dt;
+
+        previousHandPosition = currentPosition;
+
+        // Calculate controller speed
+        float speed = velocity.magnitude;
+
+        // Check whether the user is swinging
+        if (speed >= throwingSpeedThreshold)
+        {
+            throwingTimer += dt;
+
+            if (throwingTimer >= throwingConfirmationTime)
+            {
+                stateMachine.StartThrowing();
+
+                Debug.Log(
+                    $"THROWING DETECTED | " +
+                    $"Hand={CurrentHand} | " +
+                    $"Speed={speed:F2} m/s"
+                );
+            }
+        }
+        else
+        {
+            // Reset if movement becomes too slow
+            throwingTimer = 0f;
+        }
+    }
 
     private void OnBallReleased(SelectExitEventArgs args)
     {
         Debug.Log("===== BALL RELEASED =====");
 
         isHolding = false;
+
+        throwingTimer = 0f;
+        handPositionInitialized = false;
 
         postThrowTimer = 0f;
 

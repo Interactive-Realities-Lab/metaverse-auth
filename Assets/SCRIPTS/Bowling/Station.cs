@@ -26,7 +26,7 @@ public class Station : Machine
     protected override void OnDisable()
     {
         base.OnDisable();
-        Deck.OnLiftedUp += OnBallInDeck;
+        Deck.OnLiftedUp -= OnBallInDeck;
         Ball.OnBlockerEvent -= OnBallBlocked;
     }
 

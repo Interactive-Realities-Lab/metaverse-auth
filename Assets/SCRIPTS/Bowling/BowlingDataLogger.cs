@@ -12,6 +12,9 @@ public class BowlingDataLogger : MonoBehaviour
     [SerializeField] private Transform headset;
     [SerializeField] private Rigidbody ballRigidbody;
 
+    [Header("Bowling Score")]
+    [SerializeField] private Scoreboard scoreboard;
+
     private Transform leftController;
     private Transform rightController;
 
@@ -39,6 +42,15 @@ public class BowlingDataLogger : MonoBehaviour
         if (rightObj != null)
             rightController = rightObj.transform;
 
+        if (scoreboard == null)
+        {
+            scoreboard = FindFirstObjectByType<Scoreboard>();
+        }
+
+        Debug.Log(
+            "SCOREBOARD FOUND: " + (scoreboard != null)
+        );
+
         // Create unique CSV file
         string fileName =
             "BowlingData_" +
@@ -54,7 +66,7 @@ public class BowlingDataLogger : MonoBehaviour
 
         // CSV header
         writer.WriteLine(
-            "Frame,Time,State,ActiveHand," +
+            "Frame,Time,State,ActiveHand,Score," +
 
             "HeadPosX,HeadPosY,HeadPosZ," +
             "HeadRotX,HeadRotY,HeadRotZ," +
@@ -131,11 +143,16 @@ public class BowlingDataLogger : MonoBehaviour
             ? ballRigidbody.linearVelocity
             : Vector3.zero;
 
+        int currentScore = scoreboard != null
+            ? scoreboard.CurrentScore
+            : 0;
+
         writer.WriteLine(
             $"{Time.frameCount}," +
             $"{Time.time:F4}," +
             $"{state}," +
             $"{hand}," +
+            $"{currentScore}," + 
 
             $"{headPos.x:F5},{headPos.y:F5},{headPos.z:F5}," +
             $"{headRot.x:F5},{headRot.y:F5},{headRot.z:F5}," +
