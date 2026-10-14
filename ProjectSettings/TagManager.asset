@@ -13,6 +13,8 @@ TagManager:
   - Bullet
   - projectile
   - FxTemporaire
+  - LeftController
+  - RightController
   layers:
   - Default
   - TransparentFX
