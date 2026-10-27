@@ -69,13 +69,13 @@ public class BowlingDataLogger : MonoBehaviour
             "Frame,Time,State,ActiveHand,Score," +
 
             "HeadPosX,HeadPosY,HeadPosZ," +
-            "HeadRotX,HeadRotY,HeadRotZ," +
+            "HeadRotQX,HeadRotQY,HeadRotQZ,HeadRotQW," +
 
             "LeftPosX,LeftPosY,LeftPosZ," +
-            "LeftRotX,LeftRotY,LeftRotZ," +
+            "LeftRotQX,LeftRotQY,LeftRotQZ,LeftRotQW," +
 
             "RightPosX,RightPosY,RightPosZ," +
-            "RightRotX,RightRotY,RightRotZ," +
+            "RightRotQX,RightRotQY,RightRotQZ,RightRotQW," +
 
             "BallPosX,BallPosY,BallPosZ," +
             "BallVelX,BallVelY,BallVelZ"
@@ -110,28 +110,28 @@ public class BowlingDataLogger : MonoBehaviour
         Vector3 headPos =
             headset != null ? headset.position : Vector3.zero;
 
-        Vector3 headRot =
-            headset != null ? headset.eulerAngles : Vector3.zero;
+        Quaternion headRot =
+            headset != null ? headset.rotation : Quaternion.identity;
 
         Vector3 leftPos =
             leftController != null
             ? leftController.position
             : Vector3.zero;
 
-        Vector3 leftRot =
+        Quaternion leftRot =
             leftController != null
-            ? leftController.eulerAngles
-            : Vector3.zero;
+            ? leftController.rotation
+            : Quaternion.identity;
 
         Vector3 rightPos =
             rightController != null
             ? rightController.position
             : Vector3.zero;
 
-        Vector3 rightRot =
+        Quaternion rightRot =
             rightController != null
-            ? rightController.eulerAngles
-            : Vector3.zero;
+            ? rightController.rotation
+            : Quaternion.identity;
 
         Vector3 ballPos =
             ballRigidbody != null
@@ -155,13 +155,13 @@ public class BowlingDataLogger : MonoBehaviour
             $"{currentScore}," + 
 
             $"{headPos.x:F5},{headPos.y:F5},{headPos.z:F5}," +
-            $"{headRot.x:F5},{headRot.y:F5},{headRot.z:F5}," +
+            $"{headRot.x:F5},{headRot.y:F5},{headRot.z:F5},{headRot.w:F5}," +
 
             $"{leftPos.x:F5},{leftPos.y:F5},{leftPos.z:F5}," +
-            $"{leftRot.x:F5},{leftRot.y:F5},{leftRot.z:F5}," +
+            $"{leftRot.x:F5},{leftRot.y:F5},{leftRot.z:F5},{leftRot.w:F5}," +
 
             $"{rightPos.x:F5},{rightPos.y:F5},{rightPos.z:F5}," +
-            $"{rightRot.x:F5},{rightRot.y:F5},{rightRot.z:F5}," +
+            $"{rightRot.x:F5},{rightRot.y:F5},{rightRot.z:F5},{rightRot.w:F5}," +
 
             $"{ballPos.x:F5},{ballPos.y:F5},{ballPos.z:F5}," +
             $"{ballVel.x:F5},{ballVel.y:F5},{ballVel.z:F5}"
