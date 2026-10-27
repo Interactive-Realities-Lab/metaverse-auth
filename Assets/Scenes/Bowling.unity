@@ -204,7 +204,7 @@ MonoBehaviour:
   activityDetector: {fileID: 1701824273}
   headset: {fileID: 0}
   ballRigidbody: {fileID: 1701824272}
-  scoreboard: {fileID: 0}
+  scoreboard: {fileID: 493615572}
 --- !u!1001 &79652993
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -512,6 +512,50 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 66cafd0c9a76ea74fb4ce8d90411ff06, type: 3}
+--- !u!1 &175653107
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 175653109}
+  - component: {fileID: 175653108}
+  m_Layer: 0
+  m_Name: BowlingScoreManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &175653108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 175653107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ede25386c625224fb75533d3f93c5d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BowlingScoreManager
+--- !u!4 &175653109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 175653107}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 90.7596, y: 398.54495, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &221540218 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8646885271060710750, guid: eebee5203675a9f4e83324a6daa329da, type: 3}
@@ -646,6 +690,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -687,6 +732,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1 &493615566 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8854087135296724775, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
@@ -707,6 +754,7 @@ MonoBehaviour:
   _title: 'Score:'
   _stringBuffer: 50
   _text: {fileID: 2049046209}
+  _scoreManager: {fileID: 175653108}
 --- !u!1 &544993291
 GameObject:
   m_ObjectHideFlags: 0
@@ -1350,6 +1398,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -1391,6 +1440,64 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
+--- !u!1 &875778392
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 875778394}
+  - component: {fileID: 875778393}
+  m_Layer: 0
+  m_Name: BowlingRollController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &875778393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 875778392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dd3b7e77d00b624ab445c343ff6c311, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BowlingRollController
+  scoreManager: {fileID: 175653108}
+  pins:
+  - {fileID: 787570504}
+  - {fileID: 1861638404}
+  - {fileID: 1814005701}
+  - {fileID: 390768811}
+  - {fileID: 1260481738}
+  - {fileID: 1630300414}
+  - {fileID: 967554738}
+  - {fileID: 1834265955}
+  - {fileID: 1560077916}
+  - {fileID: 1566511280}
+--- !u!4 &875778394
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 875778392}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 90.7596, y: 398.54495, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &911340370
 GameObject:
   m_ObjectHideFlags: 0
@@ -1723,6 +1830,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -1762,6 +1870,8 @@ MonoBehaviour:
   _audioSource: {fileID: 967554736}
   _pointAudio: {fileID: 8300000, guid: e7354884570a95b4bb4096becdd93c0b, type: 3}
   _collisionTags: []
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1 &1008368031
 GameObject:
   m_ObjectHideFlags: 0
@@ -1957,6 +2067,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -1998,6 +2109,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1 &1273023021
 GameObject:
   m_ObjectHideFlags: 0
@@ -2247,10 +2360,8 @@ GameObject:
   - component: {fileID: 1498669114}
   - component: {fileID: 1498669113}
   - component: {fileID: 1498669112}
-  - component: {fileID: 1498669111}
   - component: {fileID: 1498669110}
   - component: {fileID: 1498669109}
-  - component: {fileID: 1498669108}
   - component: {fileID: 1498669107}
   - component: {fileID: 1498669106}
   - component: {fileID: 1498669115}
@@ -2277,6 +2388,8 @@ MonoBehaviour:
   rightRay: {fileID: 0}
   leftDirectInteractor: {fileID: 0}
   rightDirectInteractor: {fileID: 0}
+  leftControllerManager: {fileID: 0}
+  rightControllerManager: {fileID: 0}
   bowlingSceneName: Bowling
 --- !u!82 &1498669107
 AudioSource:
@@ -2375,27 +2488,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1498669108
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1498669105}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e32ab194a3c4e34eb337be0ea39febd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  userLoginPanel: {fileID: 0}
-  logRegPanel: {fileID: 0}
-  RegFingerPrintPanel: {fileID: 0}
-  ContinuousAuthPanel: {fileID: 0}
-  tinyRotationFeedback: {fileID: 0}
-  rotationMatchingUI: {fileID: 0}
-  canvas0: {fileID: 0}
-  canvas1: {fileID: 0}
-  canvas2: {fileID: 0}
 --- !u!114 &1498669109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2432,25 +2524,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RaycastTriggerInteraction: 1
---- !u!114 &1498669111
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1498669105}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50516d0ae005e564c8dba74dac0db7bf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_LookatCamera: 1
-  m_UIElement: {fileID: 1498669114}
-  m_Camera: {fileID: 0}
-  m_RotateWithCamera: 1
-  m_FollowSpeed: 1
-  setDistance: 2
-  heightOffset: 0
 --- !u!114 &1498669112
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2671,6 +2744,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -2712,6 +2786,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1001 &1566511276
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2774,6 +2850,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -2813,6 +2890,8 @@ MonoBehaviour:
   _audioSource: {fileID: 1566511278}
   _pointAudio: {fileID: 8300000, guid: e7354884570a95b4bb4096becdd93c0b, type: 3}
   _collisionTags: []
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.4
 --- !u!1001 &1587225891
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3121,6 +3200,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -3162,6 +3242,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1001 &1701824269
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3405,6 +3487,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -3446,6 +3529,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1 &1815926189
 GameObject:
   m_ObjectHideFlags: 0
@@ -3549,6 +3634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -3590,6 +3676,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1001 &1861638400
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3652,6 +3740,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4780446966786299872, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
+    - {fileID: 7432771380870474626, guid: 62a26709da8614c4292ef40e4ea27a14, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -3693,6 +3782,8 @@ MonoBehaviour:
   _collisionTags:
   - _value: Ball
   - _value: Pin
+  _fallAngleThreshold: 35
+  _fallDistanceThreshold: 0.2
 --- !u!1 &1910928428
 GameObject:
   m_ObjectHideFlags: 0
@@ -4225,6 +4316,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 7333749596762740797, guid: aad2abf407201e8419bc0a6e12611d77, type: 3}
+      propertyPath: m_Text
+      value: Bowling Score Board
+      objectReference: {fileID: 0}
+    - target: {fileID: 7333749596762740797, guid: aad2abf407201e8419bc0a6e12611d77, type: 3}
+      propertyPath: m_FontSize
+      value: 300
+      objectReference: {fileID: 0}
     - target: {fileID: 7376859394609931423, guid: aad2abf407201e8419bc0a6e12611d77, type: 3}
       propertyPath: m_Name
       value: Title Text
@@ -4239,7 +4338,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7528197012473382596, guid: aad2abf407201e8419bc0a6e12611d77, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.25
+      value: 3.79
       objectReference: {fileID: 0}
     - target: {fileID: 7528197012473382596, guid: aad2abf407201e8419bc0a6e12611d77, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4518,13 +4617,25 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3298807652673345440, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_fontSize
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3298807652673345440, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_fontAsset
       value: 
       objectReference: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
     - target: {fileID: 3298807652673345440, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3298807652673345440, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+    - target: {fileID: 3298807652673345440, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3298807652673345440, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
@@ -4538,12 +4649,24 @@ PrefabInstance:
       value: 21
       objectReference: {fileID: 0}
     - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.1
+      value: 2.48
       objectReference: {fileID: 0}
     - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4576,6 +4699,14 @@ PrefabInstance:
     - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4373409317918388033, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4565138385440428822, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6188846946232657843, guid: d010abafa3497b54699d60b93e8b5d43, type: 3}
       propertyPath: m_Size.x
@@ -4703,6 +4834,8 @@ MonoBehaviour:
   _speed: 1
   _closingDelay: 1
   _openingDelay: 0.5
+  _scoreManager: {fileID: 0}
+  _pins: []
 --- !u!1001 &7738329436956004729
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4898,3 +5031,5 @@ SceneRoots:
   - {fileID: 1708512443}
   - {fileID: 24942117}
   - {fileID: 1498669114}
+  - {fileID: 175653109}
+  - {fileID: 875778394}

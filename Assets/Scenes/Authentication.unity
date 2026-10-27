@@ -14269,6 +14269,17 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 2210741166738272985, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
+--- !u!114 &628933846 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3711799367079663623, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9ac216f0eb04754b1d938aac6380b31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &631114397 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2673612908254728993, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -15028,7 +15039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devEchoToUI: 0
-  deviceIp: 192.168.0.104
+  deviceIp: 192.168.0.100
   port: 83
   wsPath: /
   enableImu: 1
@@ -24138,6 +24149,17 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7649170533502638454, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
+--- !u!114 &1048229908 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4564216430282282028, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
+  m_PrefabInstance: {fileID: 1255102424}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255102425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9ac216f0eb04754b1d938aac6380b31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1053969050 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -6377958603440598000, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -28997,6 +29019,7 @@ MonoBehaviour:
     m_Reference: {fileID: -1197441889105504438, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   distanceFromFace: 1.5
   heightOffset: 0
+  bowlingInteractionManager: {fileID: 0}
 --- !u!1 &1267636729 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5880312570150257314, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -49599,7 +49622,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8293533729936726373}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1dedd7fd5ca37df4ca7292d41ba491d9, type: 3}
   m_Name: 
@@ -49608,6 +49631,8 @@ MonoBehaviour:
   rightRay: {fileID: 1255102427}
   leftDirectInteractor: {fileID: 1255102430}
   rightDirectInteractor: {fileID: 1255102428}
+  leftControllerManager: {fileID: 1048229908}
+  rightControllerManager: {fileID: 628933846}
   bowlingSceneName: Bowling
 --- !u!114 &9108292829394508247
 MonoBehaviour:

@@ -1,11 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 public class BowlingInteractionManager : MonoBehaviour
 {
-   [Header("Ray Interactors")]
+    [Header("Ray Interactors")]
     public GameObject leftRay;
     public GameObject rightRay;
 
@@ -13,8 +12,14 @@ public class BowlingInteractionManager : MonoBehaviour
     public GameObject leftDirectInteractor;
     public GameObject rightDirectInteractor;
 
+    [Header("Controller Managers")]
+    public ActionBasedControllerManager leftControllerManager;
+    public ActionBasedControllerManager rightControllerManager;
+
     [Header("Scene Names")]
     public string bowlingSceneName = "Bowling";
+
+    private bool isMenuOpen = false;  
 
     private void OnEnable()
     {
@@ -43,16 +48,36 @@ public class BowlingInteractionManager : MonoBehaviour
         UpdateInteractionMode();
     }
 
+    // Called when menu opens or closes
+    public void SetMenuOpen(bool open)
+    {
+        isMenuOpen = open;
+
+        UpdateInteractionMode();
+    }
+
     private void UpdateInteractionMode()
     {
         bool bowlingLoaded = IsSceneLoaded(bowlingSceneName);
 
-        // Bowling: no ray, direct grab only
-        SetActiveSafe(leftRay, !bowlingLoaded);
-        SetActiveSafe(rightRay, !bowlingLoaded);
+        bool enableRay = !bowlingLoaded || isMenuOpen;
+        bool enableDirectGrab = bowlingLoaded;
 
-        SetActiveSafe(leftDirectInteractor, bowlingLoaded);
-        SetActiveSafe(rightDirectInteractor, bowlingLoaded);
+        // Disable automatic controller interaction switching
+        // while Bowling is loaded.
+        if (leftControllerManager != null)
+            leftControllerManager.enabled = !bowlingLoaded;
+
+        if (rightControllerManager != null)
+            rightControllerManager.enabled = !bowlingLoaded;
+
+        // Control ray visibility
+        SetActiveSafe(leftRay, enableRay);
+        SetActiveSafe(rightRay, enableRay);
+
+        // Control direct grabbing
+        SetActiveSafe(leftDirectInteractor, enableDirectGrab);
+        SetActiveSafe(rightDirectInteractor, enableDirectGrab);
     }
 
     private bool IsSceneLoaded(string sceneName)
@@ -71,6 +96,8 @@ public class BowlingInteractionManager : MonoBehaviour
     private void SetActiveSafe(GameObject obj, bool active)
     {
         if (obj != null && obj.activeSelf != active)
+        {
             obj.SetActive(active);
+        }
     }
 }

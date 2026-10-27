@@ -16,6 +16,18 @@ public class MenuToggle : MonoBehaviour
     public float distanceFromFace = 1.5f;
     public float heightOffset = 0f;
 
+    [Header("Interaction Manager")]
+    public BowlingInteractionManager bowlingInteractionManager;
+
+    void Start()
+    {
+        // Synchronize interaction state with initial menu visibility
+        if (bowlingInteractionManager != null && MenuCanvas != null)
+        {
+            bowlingInteractionManager.SetMenuOpen(MenuCanvas.activeSelf);
+        }
+    }
+
     void Update()
     {
         if (bButtonAction.action != null &&
@@ -27,24 +39,50 @@ public class MenuToggle : MonoBehaviour
 
     public void ToggleMenu()
     {
+        if (MenuCanvas == null)
+            return;
+
         bool show = !MenuCanvas.activeSelf;
+
         MenuCanvas.SetActive(show);
 
         if (show)
         {
             PlaceMenuInFrontOfUser();
         }
+
+        // Enable or disable rays depending on menu visibility
+        if (bowlingInteractionManager != null)
+        {
+            bowlingInteractionManager.SetMenuOpen(show);
+        }
     }
 
     public void CloseMenu()
     {
-        MenuCanvas.SetActive(false);
+        if (MenuCanvas != null)
+        {
+            MenuCanvas.SetActive(false);
+        }
+
+        // Restore normal interaction mode
+        if (bowlingInteractionManager != null)
+        {
+            bowlingInteractionManager.SetMenuOpen(false);
+        }
     }
 
     void PlaceMenuInFrontOfUser()
     {
+        if (headsetCamera == null)
+            return;
+
         Vector3 forward = headsetCamera.forward;
         forward.y = 0;
+
+        if (forward.sqrMagnitude < 0.0001f)
+            forward = Vector3.forward;
+
         forward.Normalize();
 
         Vector3 position =
