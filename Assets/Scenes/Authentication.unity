@@ -29017,9 +29017,9 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: -1197441889105504438, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  interactionManager: {fileID: 8293533729936726388}
   distanceFromFace: 1.5
   heightOffset: 0
-  bowlingInteractionManager: {fileID: 0}
 --- !u!1 &1267636729 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5880312570150257314, guid: d8f35bfb141eda042a877836e92d9648, type: 3}
@@ -49624,9 +49624,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8293533729936726373}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1dedd7fd5ca37df4ca7292d41ba491d9, type: 3}
+  m_Script: {fileID: 11500000, guid: 6bc2c55c8b18cb346bccc50fcac2dcf8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRInteractionManager
   leftRay: {fileID: 1255102429}
   rightRay: {fileID: 1255102427}
   leftDirectInteractor: {fileID: 1255102430}
@@ -49634,6 +49634,8 @@ MonoBehaviour:
   leftControllerManager: {fileID: 1048229908}
   rightControllerManager: {fileID: 628933846}
   bowlingSceneName: Bowling
+  shootingSceneName: Shooting
+  archerySceneName: Archery
 --- !u!114 &9108292829394508247
 MonoBehaviour:
   m_ObjectHideFlags: 0

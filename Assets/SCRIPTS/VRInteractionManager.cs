@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
-public class BowlingInteractionManager : MonoBehaviour
+public class VRInteractionManager : MonoBehaviour
 {
     [Header("Ray Interactors")]
     public GameObject leftRay;
@@ -16,10 +16,12 @@ public class BowlingInteractionManager : MonoBehaviour
     public ActionBasedControllerManager leftControllerManager;
     public ActionBasedControllerManager rightControllerManager;
 
-    [Header("Scene Names")]
+    [Header("Gameplay Scenes")]
     public string bowlingSceneName = "Bowling";
+    public string shootingSceneName = "Shooting";
+    public string archerySceneName = "Archery";
 
-    private bool isMenuOpen = false;  
+    private bool isMenuOpen = false;
 
     private void OnEnable()
     {
@@ -48,45 +50,60 @@ public class BowlingInteractionManager : MonoBehaviour
         UpdateInteractionMode();
     }
 
-    // Called when menu opens or closes
     public void SetMenuOpen(bool open)
     {
         isMenuOpen = open;
+
+        Debug.Log("Menu Open: " + isMenuOpen);
 
         UpdateInteractionMode();
     }
 
     private void UpdateInteractionMode()
     {
-        bool bowlingLoaded = IsSceneLoaded(bowlingSceneName);
+        bool gameplaySceneLoaded =
+            IsSceneLoaded(bowlingSceneName) ||
+            IsSceneLoaded(shootingSceneName) ||
+            IsSceneLoaded(archerySceneName);
 
-        bool enableRay = !bowlingLoaded || isMenuOpen;
-        bool enableDirectGrab = bowlingLoaded;
+        // During gameplay, rays are disabled.
+        // When menu opens, rays are enabled.
+        bool enableRay = !gameplaySceneLoaded || isMenuOpen;
 
-        // Disable automatic controller interaction switching
-        // while Bowling is loaded.
+        // Direct grabbing stays enabled during gameplay.
+        bool enableDirectGrab = gameplaySceneLoaded;
+
+        // Prevent automatic switching between
+        // ray and direct interaction during gameplay.
         if (leftControllerManager != null)
-            leftControllerManager.enabled = !bowlingLoaded;
+            leftControllerManager.enabled = !gameplaySceneLoaded;
 
         if (rightControllerManager != null)
-            rightControllerManager.enabled = !bowlingLoaded;
+            rightControllerManager.enabled = !gameplaySceneLoaded;
 
-        // Control ray visibility
+        // Enable or disable rays.
         SetActiveSafe(leftRay, enableRay);
         SetActiveSafe(rightRay, enableRay);
 
-        // Control direct grabbing
+        // Enable or disable direct grabbing.
         SetActiveSafe(leftDirectInteractor, enableDirectGrab);
         SetActiveSafe(rightDirectInteractor, enableDirectGrab);
+
+        Debug.Log(
+            "Interaction Mode | Gameplay: " + gameplaySceneLoaded +
+            " | Menu: " + isMenuOpen +
+            " | Ray: " + enableRay +
+            " | Direct Grab: " + enableDirectGrab
+        );
     }
 
     private bool IsSceneLoaded(string sceneName)
     {
         for (int i = 0; i < SceneManager.sceneCount; i++)
         {
-            Scene s = SceneManager.GetSceneAt(i);
+            Scene scene = SceneManager.GetSceneAt(i);
 
-            if (s.isLoaded && s.name == sceneName)
+            if (scene.isLoaded && scene.name == sceneName)
                 return true;
         }
 
