@@ -44,6 +44,7 @@ public class TargetSpawner : MonoBehaviour
     public int maxSpawnAttempts = 30;
 
     private GameObject currentTarget;
+    public GameObject CurrentTarget => currentTarget;
     private AudioSource audioSource;
 
     void Awake()

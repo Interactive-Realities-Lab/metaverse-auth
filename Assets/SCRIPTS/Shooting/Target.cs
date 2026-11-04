@@ -29,6 +29,16 @@ public class Target : MonoBehaviour
         if (alreadyHit) return; // prevent double-triggering
         alreadyHit = true;
 
+        //data logger
+
+        ShootingDataLogger logger =
+            FindFirstObjectByType<ShootingDataLogger>();
+
+        if (logger != null)
+        {
+            logger.RegisterTargetHit();
+        }
+
         // if (hitVfx != null)
         //     Instantiate(hitVfx, transform.position, Quaternion.identity);
 
