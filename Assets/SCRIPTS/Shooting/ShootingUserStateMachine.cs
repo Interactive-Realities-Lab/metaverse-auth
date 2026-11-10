@@ -7,41 +7,31 @@ public class ShootingUserStateMachine : MonoBehaviour
     {
         Idle,
         Reaching,
-        Holding,
+        HoldingIdle,
         Searching,
         TargetLocated,
         Aiming,
         Firing,
-        PostFiring,
-        GunReleased
+        PostFiring
     }
 
     [Header("Animator")]
     [SerializeField] private Animator animator;
 
-    [Header("Current State")]
-    [SerializeField] private ShootingState currentState = ShootingState.Idle;
-
-    [Header("Debug")]
-    [SerializeField] private bool showDebugLogs = true;
-
-    public ShootingState CurrentState => currentState;
-
-    public string CurrentStateName => currentState.ToString();
-
-    public event Action<ShootingState> OnStateChanged;
-
+    private ShootingState currentState = ShootingState.Idle;
     private float stateStartTime;
 
-    public float StateDuration =>
-        Time.time - stateStartTime;
+    public ShootingState CurrentState => currentState;
+    public string CurrentStateName => currentState.ToString();
+    public float StateDuration => Time.time - stateStartTime;
+
+    public event Action<ShootingState> OnStateChanged;
 
     private void Awake()
     {
         if (animator == null)
             animator = GetComponent<Animator>();
 
-        currentState = ShootingState.Idle;
         stateStartTime = Time.time;
     }
 
@@ -58,26 +48,17 @@ public class ShootingUserStateMachine : MonoBehaviour
         ShootingState previousState = currentState;
 
         currentState = newState;
-
         stateStartTime = Time.time;
 
         UpdateAnimator();
 
-        if (showDebugLogs)
-        {
-            Debug.Log(
-                "[Shooting State] " +
-                previousState +
-                " -> " +
-                currentState +
-                " | Time: " +
-                Time.time.ToString("F3") +
-                " | Frame: " +
-                Time.frameCount
-            );
-        }
-
         OnStateChanged?.Invoke(currentState);
+
+        Debug.Log(
+            "[SHOOTING STATE] " +
+            previousState + " -> " + currentState +
+            " | Frame: " + Time.frameCount
+        );
     }
 
     private void UpdateAnimator()
@@ -85,16 +66,46 @@ public class ShootingUserStateMachine : MonoBehaviour
         if (animator == null)
             return;
 
-        animator.Play(currentState.ToString(), 0, 0f);
-    }
+        string statePath;
 
-    public bool IsInState(ShootingState state)
-    {
-        return currentState == state;
-    }
+        switch (currentState)
+        {
+            case ShootingState.Idle:
+                statePath = "Base Layer.GunNotHeld.Idle";
+                break;
 
-    public void ResetStateMachine()
-    {
-        ChangeState(ShootingState.Idle);
+            case ShootingState.Reaching:
+                statePath = "Base Layer.GunNotHeld.Reaching";
+                break;
+
+            case ShootingState.HoldingIdle:
+                statePath = "Base Layer.GunHeld.HoldingIdle";
+                break;
+
+            case ShootingState.Searching:
+                statePath = "Base Layer.GunHeld.Searching";
+                break;
+
+            case ShootingState.TargetLocated:
+                statePath = "Base Layer.GunHeld.TargetLocated";
+                break;
+
+            case ShootingState.Aiming:
+                statePath = "Base Layer.GunHeld.Aiming";
+                break;
+
+            case ShootingState.Firing:
+                statePath = "Base Layer.GunHeld.Firing";
+                break;
+
+            case ShootingState.PostFiring:
+                statePath = "Base Layer.GunHeld.PostFiring";
+                break;
+
+            default:
+                return;
+        }
+
+        animator.Play(statePath, 0, 0f);
     }
 }

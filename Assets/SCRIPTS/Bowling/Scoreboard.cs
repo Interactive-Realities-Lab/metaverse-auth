@@ -9,10 +9,10 @@ public class Scoreboard : MonoBehaviour
     [Header("Frame UI")]
     [SerializeField] private BowlingFrameUI[] _frameUI;
 
-    [Header("Optional Total Score")]
-    [SerializeField] private TextMeshProUGUI _totalScoreText;
+    [Header("Game Completion Message")]
+    [SerializeField] private TextMeshProUGUI _gameCompletedText;
 
-    // Preserved for BowlingDataLogger.cs
+    // Keep this for BowlingDataLogger.cs
     public int CurrentScore =>
         _scoreManager != null
             ? _scoreManager.GetTotalScore()
@@ -40,6 +40,7 @@ public class Scoreboard : MonoBehaviour
         if (_scoreManager == null)
             return;
 
+        // Update all 10 frames
         for (int i = 0; i < 10; i++)
         {
             if (_frameUI == null ||
@@ -54,10 +55,14 @@ public class Scoreboard : MonoBehaviour
             );
         }
 
-        if (_totalScoreText != null)
+        // Show completion message only when game finishes
+        if (_gameCompletedText != null)
         {
-            _totalScoreText.text =
-                "TOTAL: " + CurrentScore;
+            _gameCompletedText.text =
+                _scoreManager.GameOver
+                    ? "GAME COMPLETED!"
+                    : "";
+
         }
     }
 }

@@ -34,6 +34,9 @@ public class ShootingDataLogger : MonoBehaviour
     private int shotCount;
     private int hitCount;
 
+    private bool previousGunHeld;
+    private bool gunHeldInitialized;
+
     private FireBulletOnActivate subscribedGun;
 
     private static readonly CultureInfo CI =
@@ -201,7 +204,7 @@ public class ShootingDataLogger : MonoBehaviour
             writer = new StreamWriter(filePath, false);
 
             writer.WriteLine(
-    "Frame,Time,State,ActiveHand,GunHeld,TargetVisible,AimAngle,ShotCount,HitCount," +
+    "Frame,Time,ParentState,State,GunEvent,ActiveHand,GunHeld,TargetVisible,AimAngle,ShotCount,HitCount," +
 
     "HeadPositionX,HeadPositionY,HeadPositionZ," +
     "HeadRotationX,HeadRotationY,HeadRotationZ,HeadRotationW," +
@@ -221,6 +224,9 @@ public class ShootingDataLogger : MonoBehaviour
             sessionStartTime = Time.unscaledTime;       
             shotCount = 0;
             hitCount = 0;
+
+            previousGunHeld = gunGrab != null && gunGrab.isSelected;
+            gunHeldInitialized = true;
 
             isLogging = true;
 
@@ -284,6 +290,22 @@ public class ShootingDataLogger : MonoBehaviour
         hitCount++;
     }
 
+    private string GetParentState()
+    {
+        if (stateMachine == null)
+            return "Unknown";
+
+        switch (stateMachine.CurrentState)
+        {
+            case ShootingUserStateMachine.ShootingState.Idle:
+            case ShootingUserStateMachine.ShootingState.Reaching:
+                return "GunNotHeld";
+
+            default:
+                return "GunHeld";
+        }
+    }
+
     private void WriteRow()
     {
         if (!isLogging || writer == null)
@@ -302,6 +324,27 @@ public class ShootingDataLogger : MonoBehaviour
 
         bool gunHeld =
             gunGrab != null && gunGrab.isSelected;
+
+        string gunEvent = "None";
+
+        if (!gunHeldInitialized)
+        {
+            previousGunHeld = gunHeld;
+            gunHeldInitialized = true;
+        }
+        else
+        {
+            if (!previousGunHeld && gunHeld)
+            {
+                gunEvent = "GunGrabbed";
+            }
+            else if (previousGunHeld && !gunHeld)
+            {
+                gunEvent = "GunReleased";
+            }
+        }
+
+        previousGunHeld = gunHeld;
 
         bool targetVisible = false;
         float aimAngle = float.NaN;
@@ -351,11 +394,16 @@ public class ShootingDataLogger : MonoBehaviour
         {
             Time.frameCount.ToString(CI),
             F(Time.time),
+
+            GetParentState(),
             stateName,
+            gunEvent,
+
             GetActiveHand(),
             gunHeld ? "1" : "0",
             targetVisible ? "1" : "0",
             F(aimAngle),
+
             shotCount.ToString(CI),
             hitCount.ToString(CI),
 
