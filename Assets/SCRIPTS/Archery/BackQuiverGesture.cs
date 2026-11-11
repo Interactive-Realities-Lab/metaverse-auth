@@ -42,6 +42,11 @@ public class BackQuiverGesture : MonoBehaviour
     private bool leftGripWasPressed;
     private bool rightGripWasPressed;
 
+    [SerializeField] private XRGrabInteractable bow;
+    [SerializeField] private ArcheryUserStateMachine stateMachine;
+
+    private GameObject currentArrow;
+
     private void Start()
     {
         DetectReferences();
@@ -224,6 +229,12 @@ public class BackQuiverGesture : MonoBehaviour
 
     private void SpawnArrow(XRDirectInteractor interactor)
     {
+        if (bow == null || !bow.isSelected)
+        {
+            Debug.Log("BACK QUIVER: Grab the bow first.");
+            return;
+        }
+        
         if (interactor == null)
             return;
 
@@ -237,6 +248,8 @@ public class BackQuiverGesture : MonoBehaviour
             interactor.transform.position,
             interactor.transform.rotation
         );
+
+        currentArrow = arrowObject;
 
         Arrow arrow =
             arrowObject.GetComponent<Arrow>();
@@ -272,5 +285,23 @@ public class BackQuiverGesture : MonoBehaviour
         Debug.Log(
             "BACK QUIVER: Arrow retrieved!"
         );
+
+        if (stateMachine != null)
+        {
+            stateMachine.NotifyArrowRetrieved(arrow);
+        }
+
+        ArcheryLoggerEvents.NotifyArrowRetrieved(arrow);
+    }
+
+    public void RemoveCurrentArrow()
+    {
+        if (currentArrow == null)
+            return;
+
+        Destroy(currentArrow);
+        currentArrow = null;
+
+        Debug.Log("BACK QUIVER: Arrow removed because bow was dropped.");
     }
 }

@@ -207,6 +207,59 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.3
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &204571082
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 204571084}
+  - component: {fileID: 204571083}
+  m_Layer: 0
+  m_Name: ArcheryDataLogger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &204571083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204571082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31fe6ac048b6fff4fb021c9624198a5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArcheryDataLogger
+  stateMachine: {fileID: 798127657}
+  bow: {fileID: 615835882}
+  puller: {fileID: 615835881}
+  headset: {fileID: 0}
+  leftController: {fileID: 0}
+  rightController: {fileID: 0}
+  logEveryFrame: 1
+  logStateChanges: 1
+  flushEveryFrame: 0
+--- !u!4 &204571084
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204571082}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 450, y: 2.4125, z: 482}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &319433778
 GameObject:
   m_ObjectHideFlags: 0
@@ -617,6 +670,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bow
       objectReference: {fileID: 0}
+    - target: {fileID: 3176465753457872173, guid: 3608a843a95e40a42836b65140c98f11, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: c1dcb242310e8f6479ce9160a5b4601f, type: 2}
     - target: {fileID: 5854033015894534605, guid: 3608a843a95e40a42836b65140c98f11, type: 3}
       propertyPath: m_LocalPosition.x
       value: 449
@@ -681,6 +738,110 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ed2ef36db022114290f88537f0ce71e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Puller
+--- !u!114 &615835882 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 705318187586076703, guid: 3608a843a95e40a42836b65140c98f11, type: 3}
+  m_PrefabInstance: {fileID: 615835879}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56f3e3b8e2e5ad445bf65643839355b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &798127656
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 798127659}
+  - component: {fileID: 798127658}
+  - component: {fileID: 798127657}
+  m_Layer: 0
+  m_Name: ArcheryUserStateMachine
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &798127657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 798127656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 320180567a59ad34f8e8dc2cf362340b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArcheryUserStateMachine
+  activityAnimator: {fileID: 798127658}
+  bow: {fileID: 615835882}
+  puller: {fileID: 615835881}
+  notch: {fileID: 615835880}
+  quiverZone: {fileID: 193301782}
+  headset: {fileID: 0}
+  leftController: {fileID: 0}
+  rightController: {fileID: 0}
+  starTargets:
+  - {fileID: 8875003813084987010}
+  - {fileID: 8875003813084198358}
+  - {fileID: 8875003813733605980}
+  - {fileID: 8875003812317282464}
+  - {fileID: 8875003813389685303}
+  - {fileID: 8875003812297002854}
+  reachBowDistance: 0.45
+  reachArrowDistance: 0.45
+  nockDistance: 0.18
+  drawingThreshold: 0.08
+  aimingPullThreshold: 0.65
+  aimingStabilityTolerance: 0.04
+  aimingHoldSeconds: 0.4
+  firingStateSeconds: 0.12
+  postFiringSeconds: 0.35
+  observingAngle: 15
+  observingHoldSeconds: 0.5
+--- !u!95 &798127658
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 798127656}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a978c8a17c203ad4ba94e9c5b403bfa1, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!4 &798127659
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 798127656}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 450, y: 2.4125, z: 482}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1016991358
 GameObject:
   m_ObjectHideFlags: 0
@@ -734,6 +895,52 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.06
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1105358208
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1105358210}
+  - component: {fileID: 1105358209}
+  m_Layer: 0
+  m_Name: ArcheryBowRequirement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1105358209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105358208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 543c26d38dea8d1478692af82474a4f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArcheryBowRequirement
+  bow: {fileID: 615835882}
+  backQuiver: {fileID: 1521339581}
+--- !u!4 &1105358210
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105358208}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 450, y: 2.4125, z: 482}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1202528587
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1082,6 +1289,8 @@ MonoBehaviour:
     m_Reference: {fileID: 0}
   interactionManager: {fileID: 0}
   spawnCooldown: 0.5
+  bow: {fileID: 615835882}
+  stateMachine: {fileID: 0}
 --- !u!1001 &1527417246
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2845,3 +3054,6 @@ SceneRoots:
   - {fileID: 1521339579}
   - {fileID: 1262422991}
   - {fileID: 492197606}
+  - {fileID: 1105358210}
+  - {fileID: 798127659}
+  - {fileID: 204571084}

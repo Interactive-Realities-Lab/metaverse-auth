@@ -8,7 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 public class Arrow : XRGrabInteractable
 {
     [Header("Arrow Settings")]
-    public float speed = 60f;
+    public float speed = 100f;
     public Transform tip = null;
 
     private bool inAir = false;
@@ -128,7 +128,18 @@ public class Arrow : XRGrabInteractable
 
         Debug.Log("Arrow Is Kinematic: " + rigidBody.isKinematic);
 
+        // Launch the arrow
         MaskAndFire(pullValue);
+
+        ArcheryUserStateMachine stateMachine =
+            FindFirstObjectByType<ArcheryUserStateMachine>();
+
+        if (stateMachine != null)
+        {
+            stateMachine.NotifyArrowFired(this);
+        }
+
+        ArcheryLoggerEvents.NotifyArrowFired(this);
 
         StartCoroutine(RotateWithVelocity());
 
