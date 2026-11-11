@@ -15039,7 +15039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devEchoToUI: 0
-  deviceIp: 192.168.0.106
+  deviceIp: 192.168.0.105
   port: 83
   wsPath: /
   enableImu: 1

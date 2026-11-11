@@ -7411,7 +7411,6 @@ GameObject:
   - component: {fileID: 1498669110}
   - component: {fileID: 1498669109}
   - component: {fileID: 1498669107}
-  - component: {fileID: 1498669106}
   - component: {fileID: 1498669115}
   m_Layer: 5
   m_Name: BowlingValidationCanvas
@@ -7420,25 +7419,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1498669106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1498669105}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1dedd7fd5ca37df4ca7292d41ba491d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  leftRay: {fileID: 0}
-  rightRay: {fileID: 0}
-  leftDirectInteractor: {fileID: 0}
-  rightDirectInteractor: {fileID: 0}
-  leftControllerManager: {fileID: 0}
-  rightControllerManager: {fileID: 0}
-  bowlingSceneName: Bowling
 --- !u!82 &1498669107
 AudioSource:
   m_ObjectHideFlags: 0
